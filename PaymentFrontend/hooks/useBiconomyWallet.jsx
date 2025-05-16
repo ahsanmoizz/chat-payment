@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { BiconomySmartAccount, createSmartAccountClient } from "@biconomy/account";
+import {  createSmartAccountClient } from "@biconomy/account";
 import { ChainId } from "@biconomy/core-types";
 
 export const useBiconomyWallet = () => {
@@ -15,10 +15,10 @@ export const useBiconomyWallet = () => {
 
       const smartWallet = await createSmartAccountClient({
         signer,
-        chainId: ChainId.POLYGON_MUMBAI, // Or mainnet id like 137
-        bundlerUrl: process.env.REACT_APP_BICONOMY_BUNDLER,
-        paymasterUrl: process.env.REACT_APP_BICONOMY_PAYMASTER,
-        entryPointAddress: process.env.REACT_APP_BICONOMY_ENTRYPOINT,
+       chainId: 80001, // Polygon Mumbai (replace with 137 for mainnet if needed)
+    bundlerUrl: "https://dummy-bundler.com",
+    paymasterUrl: "https://dummy-paymaster.com",
+    entryPointAddress: "0xDUMMYENTRYPOINTADDRESS",
       });
 
       const address = await smartWallet.getAddress();

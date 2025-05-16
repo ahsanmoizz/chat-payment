@@ -25,12 +25,12 @@ const adminTxRoute = require("./routes/adminHistory");
 const evmTxLogger = require("./routes/evmTransactionLogger");
  
 
- app.use("/api/delayed-transfer"),
-app.use("/api/admin", adminTxRoute);
 // Mount API routes
-app.use("/api/history"), 
-
+app.use("/api/delayed-transfer", delayedTransferRoute);
+app.use("/api/admin", adminTxRoute);
+app.use("/api/history", historyRoute);
 app.use("/api/evm-tx-log", evmTxLogger);
+
 // Mount API routes
 app.use("/api/webhook", moonpayWebhook);
 app.use("/api/wallet", walletRoutes);

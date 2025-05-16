@@ -124,77 +124,36 @@ DDPRateLimiter.addRule({
 
 // You might also add rate limiting to verification if needed.
 
-// Custom login handler for email OTP authentication.
 Accounts.registerLoginHandler('email-otp', function (options) {
-  // Only handle when both email and otp are provided.
-  if (!options.email || !options.otp) {
-    return undefined;
-  }
+  // Validate basic inputs early to reduce nesting.
+  if (!options.email || !options.otp) return undefined;
+  
   check(options.email, String);
   check(options.otp, String);
 
-  const email = options.email;
-  const otp = options.otp;
-
-  // Look up the OTP record.
+  const { email, otp } = options;
   const record = EmailOTPs.findOne({ email });
+
+  // Validate OTP record.
   if (!record) {
     throw new Meteor.Error('otp-not-found', 'No OTP found for this email.');
   }
+
   if (record.expiration < new Date()) {
     EmailOTPs.remove({ email });
     throw new Meteor.Error('otp-expired', 'The OTP has expired. Please request a new one.');
   }
+
   if (record.otp !== otp) {
-    const newAttempts = (record.attempts || 0) + 1;
-    EmailOTPs.update({ email }, { $set: { attempts: newAttempts } });
-    if (newAttempts >= 3) {
-      EmailOTPs.remove({ email });
-      throw new Meteor.Error('max-attempts', 'Maximum OTP attempts exceeded. Please request a new OTP.');
-    }
-    throw new Meteor.Error('invalid-otp', 'Invalid OTP.');
+    handleFailedOTPAttempt(email, record.attempts);
   }
 
-  // OTP is verified; remove record.
+  // OTP is valid; remove record.
   EmailOTPs.remove({ email });
   console.log(`Email OTP verified for ${email}`);
 
-  // Check for an existing user or create a new one.
-  let user = Meteor.users.findOne({
-    $or: [
-      { 'emails.address': options.email },
-      { 'profile.phone': phoneNumber }
-    ]
-  });
-  
-  if (!user) {
-    const userId = Accounts.createUser({
-      email: options.email,
-      profile: {
-        phone: phoneNumber,
-        name: options.name,
-        profilePic: options.profilePic,
-        createdAt: new Date()
-      }
-    });
-    user = Meteor.users.findOne(userId);
-    console.log(`New user created with email: ${options.email} and phone: ${phoneNumber}`);
-  } else {
-    const setFields = {};
-    if (options.email && !user.emails?.some(e => e.address === options.email)) {
-      setFields.emails = [{ address: options.email, verified: true }];
-    }
-    if (phoneNumber && user.profile?.phone !== phoneNumber) {
-      setFields['profile.phone'] = phoneNumber;
-    }
-    if (options.name) setFields['profile.name'] = options.name;
-    if (options.profilePic) setFields['profile.profilePic'] = options.profilePic;
-  
-    if (Object.keys(setFields).length > 0) {
-      Meteor.users.update(user._id, { $set: setFields });
-      console.log(`User ${user._id} updated with additional info.`);
-    }
-  }
+  // Ensure user exists or create a new one.
+  const user = findOrCreateUser(options);
 
   // Issue a login token.
   const stampedToken = Accounts._generateStampedLoginToken();
@@ -206,3 +165,61 @@ Accounts.registerLoginHandler('email-otp', function (options) {
     tokenExpires: Accounts._tokenExpiration(stampedToken),
   };
 });
+
+// Helper to handle failed OTP attempts.
+function handleFailedOTPAttempt(email, currentAttempts = 0) {
+  const newAttempts = currentAttempts + 1;
+  EmailOTPs.update({ email }, { $set: { attempts: newAttempts } });
+
+  if (newAttempts >= 3) {
+    EmailOTPs.remove({ email });
+    throw new Meteor.Error('max-attempts', 'Maximum OTP attempts exceeded. Please request a new OTP.');
+  }
+
+  throw new Meteor.Error('invalid-otp', 'Invalid OTP.');
+}
+
+// Helper to find or create a user.
+function findOrCreateUser(options) {
+  const { email, name, profilePic, phoneNumber } = options;
+  let user = Meteor.users.findOne({
+    $or: [
+      { 'emails.address': email },
+      { 'profile.phone': phoneNumber }
+    ]
+  });
+
+  if (!user) {
+    const userId = Accounts.createUser({
+      email,
+      profile: {
+        phone: phoneNumber,
+        name,
+        profilePic,
+        createdAt: new Date()
+      }
+    });
+    user = Meteor.users.findOne(userId);
+    console.log(`New user created with email: ${email} and phone: ${phoneNumber}`);
+  } else {
+    const setFields = {};
+
+    if (email && !user.emails?.some(e => e.address === email)) {
+      setFields.emails = [{ address: email, verified: true }];
+    }
+
+    if (phoneNumber && user.profile?.phone !== phoneNumber) {
+      setFields['profile.phone'] = phoneNumber;
+    }
+
+    if (name) setFields['profile.name'] = name;
+    if (profilePic) setFields['profile.profilePic'] = profilePic;
+
+    if (Object.keys(setFields).length > 0) {
+      Meteor.users.update(user._id, { $set: setFields });
+      console.log(`User ${user._id} updated with additional info.`);
+    }
+  }
+
+  return user;
+}

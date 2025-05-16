@@ -1,8 +1,9 @@
 // BackupOptions.jsx
-import React from 'react';
 import { downloadBackupFile, uploadBackupToDrive } from './backupmanager';
+import PropTypes from 'prop-types';
 
 const BackupOptions = ({ onClose }) => {
+  
   const handleDownload = async () => {
     try {
       await downloadBackupFile();
@@ -22,6 +23,7 @@ const BackupOptions = ({ onClose }) => {
       alert('Upload failed: ' + error.message);
     }
   };
+ 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -48,5 +50,9 @@ const BackupOptions = ({ onClose }) => {
     </div>
   );
 };
+BackupOptions.propTypes = {
+  onClose: PropTypes.func.isRequired,
+};
+
 
 export default BackupOptions;

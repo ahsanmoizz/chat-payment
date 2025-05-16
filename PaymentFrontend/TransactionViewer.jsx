@@ -6,7 +6,7 @@ export default function TxViewer() {
   const [txs, setTxs] = useState([]);
 
   const fetchHistory = async () => {
-    const res = await axios.get(`/api/history/${address}`);
+    const res = await axios.get(`https://dummyapi.yourdomain.com/api/history/${dummyAddress}`);
     setTxs(res.data);
   };
 
@@ -28,16 +28,17 @@ export default function TxViewer() {
       </button>
 
       <ul className="mt-6">
-        {txs.map((tx, i) => (
-          <li key={i} className="border-b p-2 text-sm">
-            <strong>{tx.direction.toUpperCase()}</strong> — {tx.amount} {tx.token}
-            <br />
-            Source: {tx.source} | IP: {tx.ip}
-            <br />
-            TxHash: {tx.tx_hash?.slice(0, 10)}...
-          </li>
-        ))}
-      </ul>
+  {txs.map((tx) => (
+    <li key={tx.tx_hash || tx.timestamp} className="border-b p-2 text-sm">
+      <strong>{tx.direction.toUpperCase()}</strong> — {tx.amount} {tx.token}
+      <br />
+      Source: {tx.source} | IP: {tx.ip}
+      <br />
+      TxHash: {tx.tx_hash?.slice(0, 10)}...
+    </li>
+  ))}
+</ul>
+
     </div>
   );
 }

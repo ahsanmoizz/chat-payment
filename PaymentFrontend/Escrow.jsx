@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
-import ContractABI from "../abi/YourContractABI.json"; // Replace with your actual ABI file
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+import ContractABI from "./ContractABI.json"; // Replace with your actual ABI file
+const CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
 
 export default function Escrow() {
   const { smartAccount, address } = useBiconomyWallet();
@@ -34,9 +34,11 @@ export default function Escrow() {
             amount: ethers.utils.formatEther(escrow.amount),
             completed: escrow.isCompleted,
           });
-        } catch (err) {
-          break;
-        }
+        }catch (err) {
+    console.error(`Error processing escrow transaction`, err);
+    // Break or handle the error appropriately if this is part of a loop
+    break;
+}
       }
       setEscrows(escrowData);
     } catch (err) {

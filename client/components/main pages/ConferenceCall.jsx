@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import  { useRef, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { IoCallEnd, IoMic, IoMicOff, IoVideocam, IoVideocamOff } from 'react-icons/io5';
 import { addCallLog } from './callmanager'; // Adjust the path as needed
 import { v4 as uuidv4 } from 'uuid';
-
+import PropTypes from 'prop-types';
 // Helper function to modify SDP if needed (you can adjust as necessary)
 function modifySDP(sdp) {
   const lines = sdp.split('\r\n');
@@ -14,46 +14,55 @@ function modifySDP(sdp) {
     if (line.startsWith('m=audio')) mAudioLineIndex = index;
   });
   // For video: Prefer AV1 if available.
-  if (mVideoLineIndex !== -1) {
+  // Prioritize AV1 for video
+if (mVideoLineIndex !== -1) {
     const parts = lines[mVideoLineIndex].split(' ');
     const header = parts.slice(0, 3).join(' ');
     let payloads = parts.slice(3);
     const av1Payloads = [];
     const otherPayloads = [];
+
     payloads.forEach((pt) => {
-      const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
-      if (rtpmapLine && rtpmapLine.toLowerCase().includes('av01')) {
-        av1Payloads.push(pt);
-      } else {
-        otherPayloads.push(pt);
-      }
+        const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
+        if (rtpmapLine?.toLowerCase().includes('av01')) {
+            av1Payloads.push(pt);
+        } else {
+            otherPayloads.push(pt);
+        }
     });
+
     payloads = [...av1Payloads, ...otherPayloads];
     lines[mVideoLineIndex] = `${header} ${payloads.join(' ')}`;
-  }
+}
+
   // For audio: Prioritize Opus.
-  if (mAudioLineIndex !== -1) {
+ // Prioritize AV1 for video
+// Prioritize Opus for audio
+if (mAudioLineIndex !== -1) {
     const parts = lines[mAudioLineIndex].split(' ');
     const header = parts.slice(0, 3).join(' ');
     let payloads = parts.slice(3);
     const opusPayloads = [];
     const otherAudioPayloads = [];
+
     payloads.forEach((pt) => {
-      const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
-      if (rtpmapLine && rtpmapLine.toLowerCase().includes('opus')) {
-        opusPayloads.push(pt);
-      } else {
-        otherAudioPayloads.push(pt);
-      }
+        const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
+        if (rtpmapLine?.toLowerCase().includes('opus')) {
+            opusPayloads.push(pt);
+        } else {
+            otherAudioPayloads.push(pt);
+        }
     });
+
     payloads = [...opusPayloads, ...otherAudioPayloads];
     lines[mAudioLineIndex] = `${header} ${payloads.join(' ')}`;
-  }
+}
+
   return lines.join('\r\n');
 }
 
 const ConferenceCall = ({ roomId, onEndCall, isAdmin, userId, callType = "video", chat }) => {
-  const [socket, setSocket] = useState(null);
+  const [ setSocket] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState([]);
   const [localStream, setLocalStream] = useState(null);
   const [micEnabled, setMicEnabled] = useState(true);
@@ -84,8 +93,14 @@ const ConferenceCall = ({ roomId, onEndCall, isAdmin, userId, callType = "video"
       participantIds.push(userId);
     }
   
-    const finalCallType =
-      participantIds.length > 2 ? 'Group' : (callType === 'video' ? 'Video' : 'Voice');
+    // Determine the final call type
+let finalCallType;
+if (participantIds.length > 2) {
+    finalCallType = 'Group';
+} else {
+    finalCallType = callType === 'video' ? 'Video' : 'Voice';
+}
+
   
     const callLog = {
       id: uuidv4(),
@@ -110,117 +125,131 @@ const ConferenceCall = ({ roomId, onEndCall, isAdmin, userId, callType = "video"
     }
   };
 
-  useEffect(() => {
-    // Record call start time when component mounts.
-    callStartTimeRef.current = Date.now();
+// Handles socket events for new users, signaling, and user disconnection
+const initializeSocketConnection = (s, stream, setRemoteStreams, peersRef) => {
+  // New user joined the room
+  s.on('user-joined', (socketId) => {
+      console.log('User joined:', socketId);
+      createPeerConnection(socketId, stream, s, peersRef, setRemoteStreams);
+  });
 
-    // Use environment variable for signaling server URL.
-    const signalingServer = process.env.REACT_APP_SIGNALING_SERVER_URL || 'https://your-secure-domain.com';
-    const s = io(signalingServer, {
-      query: { token: 'user-authentication-token', room: roomId },
-      secure: true,
-    });
-    setSocket(s);
+  // Handle incoming signaling messages
+  s.on('signal', async (data) => {
+      const { from, sdp, candidate } = data;
+      const pc = peersRef.current[from];
+      try {
+          if (sdp) await handleSDPMessage(pc, sdp, s, from);
+          if (candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+          console.error('Error processing signaling message:', err);
+      }
+  });
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  // Handle user leaving
+  s.on('user-left', (socketId) => {
+      console.log('User left:', socketId);
+      if (peersRef.current[socketId]) {
+          peersRef.current[socketId].close();
+          delete peersRef.current[socketId];
+          setRemoteStreams((prev) => prev.filter((r) => r.id !== socketId));
+      }
+  });
+};
+ 
+
+// Handles SDP (Session Description Protocol) messages
+const handleSDPMessage = async (pc, sdp, s, from) => {
+  if (!pc) return;
+  try {
+      if (sdp.type === 'offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          s.emit('signal', { to: from, sdp: answer });
+      } else if (sdp.type === 'answer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      }
+  } catch (err) {
+      console.error('Error handling SDP message:', err);
+  }
+};
+
+
+useEffect(() => {
+  // Record call start time
+  callStartTimeRef.current = Date.now();
+  const signalingServer = process.env.REACT_APP_SIGNALING_SERVER_URL || 'https://dummy-signaling-server.com';
+  const s = io(signalingServer, { query: { token: 'dummy-auth-token', room: roomId }, secure: true });
+  setSocket(s);
+
+  // Get local media and set up socket events
+  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-        s.emit('join', roomId);
-
-        s.on('user-joined', (socketId) => {
-          console.log('User joined:', socketId);
-          createPeerConnection(socketId, stream, s);
-        });
-
-        s.on('signal', async (data) => {
-          const { from, sdp, candidate } = data;
-          if (sdp && peersRef.current[from]) {
-            const pc = peersRef.current[from];
-            if (sdp.type === 'offer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-              const answer = await pc.createAnswer();
-              await pc.setLocalDescription(answer);
-              s.emit('signal', { to: from, sdp: answer });
-            } else if (sdp.type === 'answer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-            }
+          setLocalStream(stream);
+          if (localVideoRef.current) {
+              localVideoRef.current.srcObject = stream;
           }
-          if (candidate && peersRef.current[from]) {
-            try {
-              await peersRef.current[from].addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (err) {
-              console.error('Error adding ICE candidate:', err);
-            }
-          }
-        });
+          s.emit('join', roomId);
+          initializeSocketConnection(s, stream, setRemoteStreams, peersRef);
       })
       .catch((err) => console.error('Error accessing local media:', err));
 
-    s.on('user-left', (socketId) => {
-      console.log('User left:', socketId);
-      if (peersRef.current[socketId]) {
-        peersRef.current[socketId].close();
-        delete peersRef.current[socketId];
-        setRemoteStreams((prev) => prev.filter((r) => r.id !== socketId));
-      }
-    });
-
-    return () => {
+  // Cleanup on component unmount
+  return () => {
       if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
+          localStream.getTracks().forEach((track) => track.stop());
       }
       Object.values(peersRef.current).forEach((pc) => pc.close());
       s.disconnect();
-    };
-  }, [roomId]);
+  };
+}, [roomId]);
 
-  const createPeerConnection = (socketId, stream, s) => {
+
+  const createPeerConnection = (socketId, stream, s, peersRef, setRemoteStreams) => {
     const pc = new RTCPeerConnection();
     peersRef.current[socketId] = pc;
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
     pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        s.emit('signal', { to: socketId, candidate: event.candidate });
-      }
-    };
-    pc.ontrack = (event) => {
-      setRemoteStreams((prev) => {
-        if (!prev.some((r) => r.id === socketId)) {
-          return [...prev, { id: socketId, stream: event.streams[0] }];
+        if (event.candidate) {
+            s.emit('signal', { to: socketId, candidate: event.candidate });
         }
-        return prev;
-      });
     };
+
+    pc.ontrack = (event) => {
+        setRemoteStreams((prev) => {
+            if (!prev.some((r) => r.id === socketId)) {
+                return [...prev, { id: socketId, stream: event.streams[0] }];
+            }
+            return prev;
+        });
+    };
+
     pc.onnegotiationneeded = async () => {
-      try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        s.emit('signal', { to: socketId, sdp: offer });
-      } catch (err) {
-        console.error('Error during negotiation:', err);
-      }
+        try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            s.emit('signal', { to: socketId, sdp: offer });
+        } catch (err) {
+            console.error('Error during negotiation:', err);
+        }
     };
-  };
-
-  // UI Controls
-  const toggleMic = () => {
-    if (!localStream) return;
-    localStream.getAudioTracks().forEach((track) => {
+};
+const toggleMic = () => {
+  if (!localStream) return;
+  localStream.getAudioTracks().forEach((track) => {
       track.enabled = !track.enabled;
-      setMicEnabled(track.enabled);
-    });
-  };
+      setMicEnabled((prev) => !prev);
+  });
+};
 
-  const toggleCamera = () => {
-    if (!localStream) return;
-    localStream.getVideoTracks().forEach((track) => {
+const toggleCamera = () => {
+  if (!localStream) return;
+  localStream.getVideoTracks().forEach((track) => {
       track.enabled = !track.enabled;
-      setCameraEnabled(track.enabled);
-    });
-  };
+      setCameraEnabled((prev) => !prev);
+  });
+};
 
   return (
     <div className="w-full h-screen bg-gray-900 text-white flex flex-col">
@@ -270,5 +299,16 @@ const ConferenceCall = ({ roomId, onEndCall, isAdmin, userId, callType = "video"
     </div>
   );
 };
-
+ConferenceCall.propTypes = {
+    roomId: PropTypes.string.isRequired,
+    onEndCall: PropTypes.func,
+    isAdmin: PropTypes.bool,
+    userId: PropTypes.string.isRequired,
+    callType: PropTypes.oneOf(['video', 'voice']),
+    chat: PropTypes.shape({
+        group_name: PropTypes.string,
+        group_icon: PropTypes.string,
+        admin_id: PropTypes.string,
+    }),
+};
 export default ConferenceCall;

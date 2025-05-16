@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import PropTypes from "prop-types";
 
 const GroupMessagingToggle = ({ groupId, currentMode, userToken, onModeChange }) => {
   const [onlyAdminCanMessage, setOnlyAdminCanMessage] = useState(currentMode);
@@ -10,9 +11,9 @@ const GroupMessagingToggle = ({ groupId, currentMode, userToken, onModeChange })
     try {
       const token = userToken || localStorage.getItem("userToken");
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/groups/toggleMessaging`,
+        `${process.env.REACT_APP_API_URL || "https://dummy-api.com"}/api/groups/toggleMessaging`,
         { groupId, onlyAdminCanMessage: !onlyAdminCanMessage },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: {Authorization: `Bearer dummy_token` } }
       );
       setOnlyAdminCanMessage(response.data.onlyAdminCanMessage);
       if (onModeChange) onModeChange(response.data.onlyAdminCanMessage);
@@ -36,6 +37,13 @@ const GroupMessagingToggle = ({ groupId, currentMode, userToken, onModeChange })
       </button>
     </div>
   );
+};
+
+GroupMessagingToggle.propTypes = {
+  groupId: PropTypes.string.isRequired,
+  currentMode: PropTypes.bool.isRequired,
+  userToken: PropTypes.string,
+  onModeChange: PropTypes.func,
 };
 
 export default GroupMessagingToggle;

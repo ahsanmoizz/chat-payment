@@ -38,9 +38,9 @@ Meteor.methods({
     try {
       // Use 2factor.in API instead of Twilio.
       // Construct the URL. (Check 2factor.in documentation for the correct format.)
-      const apiKey = Meteor.settings.TWOFACTOR_API_KEY;
+      const apiKey = Meteor.settings.TWOFACTOR_API_KEY||"dummy_2factor_api_key_123456";
       // Example URL: https://2factor.in/API/V1/<api_key>/SMS/<phoneNumber>/<otp>
-      const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phoneNumber}/${otp}`;
+      const url =  `https://dummy-2factor-api.com/API/V1/${apiKey}/SMS/${phoneNumber}/${otp}`;
       const result = HTTP.call('GET', url);
       if (result.statusCode !== 200) {
         throw new Meteor.Error('2factor-error', 'OTP service returned an error.');
@@ -63,75 +63,100 @@ DDPRateLimiter.addRule({
 
 // Register a custom login handler for phone/OTP authentication.
 Accounts.registerLoginHandler('phone-otp', function (options) {
-  if (!options.phoneNumber || !options.otp) {
-    return undefined;
-  }
+  // Validate the basic inputs early to reduce nesting.
+  if (!options.phoneNumber || !options.otp) return undefined;
+  
   check(options.phoneNumber, String);
   check(options.otp, String);
-  const { phoneNumber, otp } = options;
 
+  const { phoneNumber, otp, email, name, profilePic } = options;
+
+  // Validate the OTP.
   const record = OTPs.findOne({ phoneNumber });
+  validateOTPRecord(record, phoneNumber, otp);
+
+  // Ensure the user exists or create a new one.
+  const user = findOrCreateUser({ phoneNumber, email, name, profilePic });
+
+  // Issue a login token.
+  const stampedToken = Accounts._generateStampedLoginToken();
+  Accounts._insertLoginToken(user._id, stampedToken);
+
+  return {
+    userId: user._id,
+    token: stampedToken.token,
+    tokenExpires: Accounts._tokenExpiration(stampedToken),
+  };
+});
+
+// Helper to validate the OTP record.
+function validateOTPRecord(record, phoneNumber, otp) {
   if (!record) {
     throw new Meteor.Error('otp-not-found', 'No OTP found for this phone number.');
   }
+
   if (record.expiration < new Date()) {
     OTPs.remove({ phoneNumber });
     throw new Meteor.Error('expired-otp', 'The OTP has expired. Please request a new one.');
   }
+
   if (record.otp !== otp) {
     const newAttempts = (record.attempts || 0) + 1;
     OTPs.update({ phoneNumber }, { $set: { attempts: newAttempts } });
+
     if (newAttempts >= 3) {
       OTPs.remove({ phoneNumber });
       throw new Meteor.Error('max-attempts', 'Maximum OTP attempts exceeded. Please request a new OTP.');
     }
+
     throw new Meteor.Error('invalid-otp', 'The OTP provided is incorrect.');
   }
 
+  // OTP is valid; remove the record.
   OTPs.remove({ phoneNumber });
   console.log(`OTP verified for ${phoneNumber}`);
+}
 
+// Helper to find or create a user.
+function findOrCreateUser({ phoneNumber, email, name, profilePic }) {
   let user = Meteor.users.findOne({
     $or: [
-      { 'emails.address': options.email },
+      { 'emails.address': email },
       { 'profile.phone': phoneNumber }
     ]
   });
-  
+
   if (!user) {
     const userId = Accounts.createUser({
-      email: options.email,
+      email,
       profile: {
         phone: phoneNumber,
-        name: options.name,
-        profilePic: options.profilePic,
+        name,
+        profilePic,
         createdAt: new Date()
       }
     });
     user = Meteor.users.findOne(userId);
-    console.log(`New user created with email: ${options.email} and phone: ${phoneNumber}`);
+    console.log(`New user created with email: ${email} and phone: ${phoneNumber}`);
   } else {
     const setFields = {};
-    if (options.email && !user.emails?.some(e => e.address === options.email)) {
-      setFields.emails = [{ address: options.email, verified: true }];
+
+    if (email && !user.emails?.some(e => e.address === email)) {
+      setFields.emails = [{ address: email, verified: true }];
     }
+
     if (phoneNumber && user.profile?.phone !== phoneNumber) {
       setFields['profile.phone'] = phoneNumber;
     }
-    if (options.name) setFields['profile.name'] = options.name;
-    if (options.profilePic) setFields['profile.profilePic'] = options.profilePic;
-  
+
+    if (name) setFields['profile.name'] = name;
+    if (profilePic) setFields['profile.profilePic'] = profilePic;
+
     if (Object.keys(setFields).length > 0) {
       Meteor.users.update(user._id, { $set: setFields });
       console.log(`User ${user._id} updated with additional info.`);
     }
-    const stampedToken = Accounts._generateStampedLoginToken();
-    Accounts._insertLoginToken(user._id, stampedToken);
-    
   }
-  return {
-    userId: user._id,
-    token: stampedToken.token,
-  tokenExpires: Accounts._tokenExpiration(stampedToken),
-  };
-});
+
+  return user;
+}

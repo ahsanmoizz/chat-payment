@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import UserRegistrationABI from "./UserRegistrationABI.json";
 import { useWeb3Auth } from "./hooks/web3hooks";
 import * as faceapi from 'face-api.js';
-import { USER_REG_CONTRACT_ADDRESS } from "../config/constants";
+import { USER_REG_CONTRACT_ADDRESS } from "./constants";
 
 function AccountLogin() {
   const { login, logout, address, provider } = useWeb3Auth();

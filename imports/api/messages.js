@@ -36,11 +36,12 @@ Meteor.methods({
 
     // Insert the message into MongoDB.
     return Messages.insert({
-      text,
-      createdAt: new Date(),
-      userId: this.userId,
-      username: user.username || (user.emails && user.emails[0].address) || 'Anonymous',
-    });
+    text,
+    createdAt: new Date(),
+    userId: this.userId,
+    username: user.username || user.emails?.[0]?.address || 'Anonymous',
+});
+
   },
 });
 

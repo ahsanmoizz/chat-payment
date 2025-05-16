@@ -2,14 +2,14 @@
 require("dotenv").config();
 const db = require("../db/db");
 const { ethers } = require("ethers");
-const MultiAssetWalletABI = require("../abis/MultiAssetWallet.json");
+const MultiAssetWalletABI = require("../../PaymentFrontend/ContractABI.json");
 const { sendNonEvmToken } = require("../services/nonEvmTransfer");
 const recordTransaction = require("../utils/recordTransaction");
 
-const provider = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const provider = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL||`https://dummy-rpc.yourdomain.com`);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY||"0xDUMMY_PRIVATE_KEY_1234567890abcdef1234567890abcdef12345678", provider);
 const contract = new ethers.Contract(
-  process.env.MULTI_ASSET_WALLET_ADDRESS,
+  process.env.MULTI_ASSET_WALLET_ADDRESS|| "0xDUMMY_CONTRACT_ADDRESS_1234567890abcdef1234567890abcdef",
   MultiAssetWalletABI,
   wallet
 );

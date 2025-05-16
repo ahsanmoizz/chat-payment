@@ -1,9 +1,9 @@
 // cron/monitorUserEvents.js
 const { ethers } = require("ethers");
 require("dotenv").config();
-const ABI = require("../abi/UserRegistrationABI.json");
+const ABI = require("../../PaymentFrontend/UserRegistrationABI.json");
 
-const PROVIDER = new ethers.JsonRpcProvider(process.env.ADMIN_RPC_URL);
+const PROVIDER = new ethers.JsonRpcProvider(`https://dummy-rpc.yourdomain.com`); //rpc url
 const CONTRACT_ADDRESS = process.env.USER_REGISTRATION_ADDRESS;
 const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
 

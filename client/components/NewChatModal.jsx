@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+import PropTypes from 'prop-types';
+const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com';
 const FALLBACK_AVATAR = process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40';
 
 const NewChatModal = ({ onClose, onSelectChat }) => {
-  const [contacts, setContacts] = useState([]);
+  const [ setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [registeredContacts, setRegisteredContacts] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
@@ -33,7 +33,8 @@ const NewChatModal = ({ onClose, onSelectChat }) => {
       const response = await axios.post(
         `${API_URL}/api/checkContacts`,
         { phoneNumbers },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: {Authorization: `Bearer dummy_token`
+ } }
       );
       setRegisteredContacts(response.data);
     } catch (error) {
@@ -61,49 +62,43 @@ const NewChatModal = ({ onClose, onSelectChat }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-xl relative">
         {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-lg"
-        >
-          ✕
-        </button>
-
-        {/* Header */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">New Chat</h2>
-
-        {/* Contact List */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading contacts...</p>
-        ) : (
-          <div className="max-h-64 overflow-y-auto">
-            {registeredContacts.length === 0 ? (
-              <p className="text-center text-gray-500">No registered contacts found.</p>
-            ) : (
-              registeredContacts.map((user) => (
-                <div
-                  key={user.userId}
-                  className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-transform transform hover:scale-105"
-                  onClick={() => handleSelectContact(user)}
-                >
-                  {/* User Avatar */}
-                  <img
-                    src={user.profile_image || FALLBACK_AVATAR}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full border border-gray-300 mr-4"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-800">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.phone}</p>
-                  </div>
-                </div>
-              ))
-            )}
+  <p className="text-center text-gray-500">Loading contacts...</p>
+) : (
+  <div className="max-h-64 overflow-y-auto">
+    {registeredContacts.length === 0 ? (
+      <p className="text-center text-gray-500">No registered contacts found.</p>
+    ) : (
+      registeredContacts.map((user) => (
+        <button
+          key={user.userId}
+          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-transform transform hover:scale-105 text-left w-full"
+          onClick={() => handleSelectContact(user)}
+        >
+          {/* User Avatar */}
+          <img
+            src={user.profile_image || FALLBACK_AVATAR}
+            alt={user.name}
+            className="w-12 h-12 rounded-full border border-gray-300 mr-4"
+          />
+          <div>
+            <p className="font-medium text-gray-800">{user.name}</p>
+            <p className="text-sm text-gray-500">{user.phone}</p>
           </div>
-        )}
+        </button>
+      ))
+    )}
+  </div>
+)}
       </div>
     </div>
   );
 };
+NewChatModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onSelectChat: PropTypes.func.isRequired,
+};
+
 // Pseudo-function: Replace with an actual implementation for mobile contacts retrieval.
 async function getContactsFromDevice() {
   // For an actual mobile app, use a proper contacts plugin.

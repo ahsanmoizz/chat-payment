@@ -2,10 +2,10 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
-import ContractABI from "../abi/YourContractABI.json";
+import ContractABI from "./ContractABI.json";
 import { supportedTokens } from "./utils/tokens";
 
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
 
 const Withdraw = () => {
   const { smartAccount, address } = useBiconomyWallet();
@@ -29,7 +29,7 @@ const Withdraw = () => {
         const tx = await contract.withdrawETH(ethers.utils.parseEther(amount));
         await tx.wait();
         alert("✅ ETH Withdrawal Successful");
-        await axios.post("http://localhost:5000/api/evm-tx-log", {
+        await axios.post("https://dummy-api.yourdomain.com/api/evm-tx-log", {
           userAddress: address,
           direction: "withdraw",
           token: "ETH",
@@ -45,7 +45,7 @@ const Withdraw = () => {
     } else {
       try {
         // ✅ 1. Check balance first
-        const { data } = await axios.get(`http://localhost:5000/api/balances/${address}`);
+        const { data } = await axios.get(`https://dummy-api.yourdomain.com/api/balances/update/${address}`);
         const tokenBalance = data?.balances?.[selectedToken] || "0";
   
         if (parseFloat(tokenBalance) < parseFloat(amount)) {
@@ -53,7 +53,7 @@ const Withdraw = () => {
         }
   
         // ✅ 2. Proceed with withdrawal
-        const response = await axios.post("http://localhost:5000/api/bridge-withdraw", {
+        await axios.post("http://dummy-api.yourdomain.com/api/bridge-withdraw", {
           evmAddress: address,
           nonEvmCoin: selectedToken,
           destinationAddress,

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
-import ContractABI from "../abi/YourContractABI.json"; // Update with correct path
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+import ContractABI from "./ContractABI.json"; // Update with correct path
+const CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";;
 
 export default function MultiSig() {
-  const { smartAccount, address } = useBiconomyWallet();
+  const { smartAccount} = useBiconomyWallet();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [txs, setTxs] = useState([]);
@@ -34,9 +34,11 @@ export default function MultiSig() {
             approvals: tx.approvals.toNumber(),
             executed: tx.executed,
           });
-        } catch (err) {
-          break;
-        }
+        }catch (err) {
+    console.error(`Error fetching multisig transaction at index ${i}:`, err);
+    // Break or handle the error appropriately if this is part of a loop
+    break;
+}
       }
       setTxs(txData);
     } catch (err) {

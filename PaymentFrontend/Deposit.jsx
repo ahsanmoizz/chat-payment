@@ -4,11 +4,11 @@ import { QRCodeCanvas } from "qrcode.react";
 import QrReader from "react-qr-reader";
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
-import ContractABI from "../abi/YourContractABI.json";
+import ContractABI from "./ContractABI.json";
 import axios from "axios";
 
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
-
+const CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
+const API_URL = "https://dummyapi.yourdomain.com";
 export default function Receive() {
   const { smartAccount, address } = useBiconomyWallet();
   const [scanning, setScanning] = useState(false);
@@ -19,11 +19,13 @@ export default function Receive() {
   const navigate = useNavigate();
 
   const validUsername = username && username !== "Not set";
-  const qrData = validUsername
-    ? `app://pay?user=${username}&amt=0&token=ETH`
-    : accountNumber
-    ? `app://pay?acct=${accountNumber}&amt=0&token=ETH`
-    : "";
+let qrData = "";
+
+if (validUsername) {
+  qrData = `app://pay?user=${username}&amt=0&token=ETH`;
+} else if (accountNumber) {
+  qrData = `app://pay?acct=${accountNumber}&amt=0&token=ETH`;
+}
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -93,7 +95,7 @@ export default function Receive() {
       alert("✅ Deposit Successful!");
       setDepositAmount("");
 
-      await axios.post("http://localhost:5000/api/evm-tx-log", {
+      await axios.post(`${API_URL}/api/evm-tx-log`, {
         userAddress: address,
         direction: "deposit",
         token: "ETH",
@@ -103,7 +105,7 @@ export default function Receive() {
         source: "frontend"
       });
 
-      await axios.post("http://localhost:5000/api/balances/update", {
+      await axios.post(`${API_URL}/api/balances/update`, {
         evmAddress: address,
         coin: "ETH",
         amount: depositAmount,

@@ -48,7 +48,7 @@ const LoginRegisterPage = () => {
               method === 'otp' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
-            {action === 'login' ? 'Login with OTP' : 'Register with OTP'}
+            {action === 'login' ? 'Login with PhoneNumber' : 'Register with PhoneNumber'}
           </button>
           <button
             onClick={() => setMethod('email')}
@@ -56,7 +56,7 @@ const LoginRegisterPage = () => {
               method === 'email' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
-            {action === 'login' ? 'Login with Email 2FA' : 'Register with Email 2FA'}
+            {action === 'login' ? 'Login with Email' : 'Register with Email'}
           </button>
         </div>
         {/* Render the selected authentication component */}

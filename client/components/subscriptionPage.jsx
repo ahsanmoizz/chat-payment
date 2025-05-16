@@ -11,23 +11,27 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     const fetchPlans = async () => {
-      const res = await axios.get("http://localhost:5000/api/admin/subscription-plans");
+      const res = await axios.get("https://dummy-api.com/api/admin/subscription-plans");
       setPlans(res.data);
     };
     fetchPlans();
   }, []);
-  useEffect(() => {
+ useEffect(() => {
     const checkExpiry = async () => {
-      const userId = localStorage.getItem("wallet");
-      const res = await axios.get(`/api/subscription-check/${userId}`);
-  
-      if (res.data.expired) {
-        alert("Your subscription expired. Please renew to continue using features.");
-      }
+        const userId = Meteor.userId() || localStorage.getItem("user_id");
+        if (!userId) return;
+        
+        const res = await axios.get(`https://dummy-api.com/api/subscription-check/${userId}`);
+    
+        if (res.data.expired) {
+            alert("Your subscription expired. Please renew to continue using features.");
+        }
     };
   
     checkExpiry();
-  }, []);
+}, []);
+
+  
   useEffect(() => {
     const fetchGeo = async () => {
       try {
@@ -53,12 +57,12 @@ export default function SubscriptionPage() {
     // 🌐 Open provider popup
     if (provider === "moonpay") {
       window.open(
-        `https://buy.moonpay.com?apiKey=your_moonpay_api_key&currencyCode=usdt&walletAddress=${userId}&baseCurrencyAmount=${displayPrice}`,
+        `https://dummy-moonpay.com?apiKey=dummy_moonpay_key&currencyCode=usdt&walletAddress=${userId}&baseCurrencyAmount=${displayPrice}`,
         "_blank"
       );
     } else if (provider === "transak") {
       window.open(
-        `https://global.transak.com?apiKey=your_transak_api_key&cryptoCurrency=USDT&network=ethereum&defaultCryptoAmount=${displayPrice}&disableWalletAddressForm=true&walletAddress=${userId}`,
+        `https://dummy-transak.com?apiKey=dummy_transak_key&cryptoCurrency=USDT&network=ethereum&defaultCryptoAmount=${displayPrice}&disableWalletAddressForm=true&walletAddress=${userId}`,
         "_blank"
       );
       setShowConfirm(true); // ✅ Show manual confirm
@@ -67,7 +71,7 @@ export default function SubscriptionPage() {
 
     // ✅ Auto-confirm only for MoonPay (if desired)
     try {
-      await axios.post("http://localhost:5000/api/subscription/confirm", {
+      await axios.post("https://dummy-api.com/api/subscription/confirm", {
         userId,
         planKey: selectedPlan.plan_key,
         amount: displayPrice,
@@ -110,26 +114,33 @@ export default function SubscriptionPage() {
     <div className="max-w-xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">Choose a Subscription Plan</h2>
 
-      {plans.map((plan) => (
-        <div
-          key={plan.plan_key}
-          className={`border p-4 rounded mb-4 cursor-pointer ${
-            selectedPlan?.plan_key === plan.plan_key ? "border-blue-500 bg-blue-50" : ""
-          }`}
-          onClick={() => setSelectedPlan(plan)}
-        >
-          <h3 className="text-lg font-semibold">{plan.name}</h3>
-          <p className="text-sm text-gray-600">Messages: {plan.max_messages}</p>
-          <p className="text-sm text-gray-600">Transactions: {plan.max_transactions}</p>
-          <p className="text-sm mt-1 font-medium">
-  {plan.country_prices?.[userCountry]
-    ? `${plan.country_prices[userCountry]} ${currency}`
-    : `$${plan.price_usd}`}
-</p>
+   {/* Subscription Plans */}
+{plans.map((plan) => (
+  <button
+    key={plan.plan_key}
+    className={`border p-4 rounded mb-4 w-full text-left cursor-pointer transition-all ${
+      selectedPlan?.plan_key === plan.plan_key ? "border-blue-500 bg-blue-50" : ""
+    }`}
+    onClick={() => setSelectedPlan(plan)}
+    role="button"
+    tabIndex="0"
+  >
+    {/* Plan Name */}
+    <h3 className="font-bold text-lg">{plan.name}</h3>
 
+    {/* Messages and Transactions */}
+    <p className="text-sm text-gray-600">Messages: {plan.max_messages}</p>
+    <p className="text-sm text-gray-600">Transactions: {plan.max_transactions}</p>
 
-        </div>
-      ))}
+    {/* Pricing */}
+    <p className="text-sm mt-1 font-medium">
+      {plan.country_prices?.[userCountry]
+        ? `${plan.country_prices[userCountry]} ${currency}`
+        : `$${plan.price_usd}`}
+    </p>
+  </button>
+))}
+
 
       {selectedPlan && (
         <div className="flex space-x-4 mt-4">

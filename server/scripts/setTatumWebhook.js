@@ -1,10 +1,10 @@
 const axios = require("axios");
 
-const TATUM_API_KEY = process.env.TATUM_API_KEY;
-const TATUM_WEBHOOK_URL = "https://api.tatum.io/v3/subscription";
+const TATUM_API_KEY = "DUMMY_TATUM_API_KEY_1234567890abcdef";//replace with actual tatum api key 
+const TATUM_WEBHOOK_URL = "https://dummy-tatum-api.io/v3/subscription";
 
 const SUPPORTED_CHAINS = ["BTC", "XRP", "LTC", "DOGE", "SOL"];
-const BASE_URL = "https://your-server.com/api/deposit-hook";
+const BASE_URL = "https://dummy-server.com/api/deposit-hook";
 
 const evmAddress = "0x123abc..."; // Replace dynamically
 const generateWallet = (coin) => {

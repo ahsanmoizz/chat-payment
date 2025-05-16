@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { getCallLogs, clearCallLogs } from "./callmanager.js";
-
+import PropTypes from "prop-types";
 const CallLogs = ({ onClose }) => {
   const [logs, setLogs] = useState([]);
 
@@ -47,8 +47,9 @@ const CallLogs = ({ onClose }) => {
           <p className="text-center text-gray-500 mt-4">No call logs available.</p>
         ) : (
           <ul className="space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 mt-4">
-            {logs.map((log, index) => (
-              <li key={index} className="bg-gray-100 p-4 rounded-lg shadow flex flex-col gap-2 border-l-4 border-blue-500">
+            {logs.map((log) => (
+    <li key={log.id || log.timestamp} className="bg-gray-100 p-4 rounded-lg shadow flex flex-col gap-2 border-l-4 border-blue-500">
+
                 <div className="text-sm text-gray-600 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v10l8-5-8-5z" />
@@ -102,5 +103,8 @@ const CallLogs = ({ onClose }) => {
       </div>
     </div>
   );
+};
+CallLogs.propTypes = {
+  onClose: PropTypes.func.isRequired,
 };
 export default CallLogs;

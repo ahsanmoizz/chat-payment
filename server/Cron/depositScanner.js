@@ -23,7 +23,7 @@ const checkDeposits = async () => {
 
         try {
           const res = await axios.get(
-            `https://api.tatum.io/v3/ledger/account/${wallet}/transactions?pageSize=10`,
+             `https://dummy-api.yourdomain.com/v3/ledger/account/${wallet || "dummy_wallet"}/transactions?pageSize=10`,
             {
               headers: { "x-api-key": TATUM_API_KEY },
             }
@@ -34,9 +34,9 @@ const checkDeposits = async () => {
           for (let tx of txs) {
             if (tx.operation === "PAYMENT" && tx.counterAccountId !== wallet) {
               // Send webhook to your backend to update balance
-              await axios.post("https://your-domain.com/api/webhooks/deposit-hook", {
-                address: wallet,
-                amount: tx.amount,
+              await axios.post("https://dummy-api.yourdomain.com/api/webhooks/deposit-hook", {
+                address: wallet || "dummy_wallet",
+                amount: tx.amount || "0",
                 currency: coin,
               });
 

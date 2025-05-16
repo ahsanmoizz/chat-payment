@@ -4,8 +4,8 @@ import axios from "axios";
 import { useBiconomyWallet } from "../hooks/useBiconomyWallet";
 import moment from "moment";
 import { ethers } from "ethers";
-import MultiAssetWalletABI from "../abis/MultiAssetWallet.json";
-import { MULTI_ASSET_WALLET_ADDRESS } from "../config/constants";
+import MultiAssetWalletABI from "./ContractABI.json";
+import { MULTI_ASSET_WALLET_ADDRESS } from "./constants";
 
 export default function TransferQueue() {
   const { address, smartAccount } = useBiconomyWallet();
@@ -16,7 +16,7 @@ export default function TransferQueue() {
     if (!address) return;
     try {
       setLoading(true);
-      const { data } = await axios.get(`http://localhost:5000/api/delayed-transfer/${address}`);
+      const { data } = await axios.get(`https://dummy-api.yourdomain.com/api/delayed-transfer/${address}`);
       setPendingTransfers(data);
     } catch (err) {
       console.error("❌ Failed to fetch transfers:", err);
@@ -39,7 +39,7 @@ export default function TransferQueue() {
         await tx.wait();
         alert("✅ EVM Transfer cancelled on-chain.");
       } else {
-        await axios.post("http://localhost:5000/api/delayed-transfer/retrieve", {
+        await axios.post("https://dummyapi.yourdomain.com/api/delayed-transfer/retrieve", {
           sender: address,
           transferId: transfer.id,
         });

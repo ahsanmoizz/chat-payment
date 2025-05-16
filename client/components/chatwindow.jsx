@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import localforage from 'localforage';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,9 +8,10 @@ import ForwardModal from './ForwardModal';
 import BackupOptions from './BackupOptions'; 
 import { showNotification, requestNotificationPermission } from './notificationManager';
 import GroupSettings from './GroupSettings';
+import PropTypes from 'prop-types';
 
 // Use environment variables for API URL and fallback images.
-const API_URL = process.env.REACT_APP_API_URL || 'https://api.yourdomain.com/api/chats';
+const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com/api/chats';
 const DEFAULT_PROFILE_IMAGE = process.env.REACT_APP_DEFAULT_PROFILE_IMAGE || '/images/default_profile.png';
 const DEFAULT_GROUP_ICON = process.env.REACT_APP_DEFAULT_GROUP_ICON || '/images/default_group.png';
 
@@ -104,7 +105,7 @@ const [isGroupSettingsOpen, setIsGroupSettingsOpen] = useState(false);
       const token = localStorage.getItem('userToken');
       axios
         .get(API_URL, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {  Authorization: `Bearer ${process.env.REACT_APP_USER_TOKEN || 'dummy_user_token'}` },
           params: { userId, chat_partner: chat.chat_partner },
         })
         .catch((error) => console.error('Error fetching messages:', error));
@@ -117,7 +118,7 @@ const [isGroupSettingsOpen, setIsGroupSettingsOpen] = useState(false);
 useEffect(() => {
   const fetchChatDetails = async () => {
     try {
-      const response = await fetch(`/api/chats/${chat.id}`);
+         const response = await fetch(process.env.REACT_APP_CHAT_API_URL || 'https://dummy-api.com/api/chats/' + chat.id);
       const data = await response.json();
       if (typeof setChat === 'function') {
         setChat((prevChat) => ({ ...prevChat, isOnline: data.isOnline }));
@@ -245,23 +246,27 @@ useEffect(() => {
     const sanitizedText = text; 
 
     // Prepare the message
-    const newMessage = {
-        id: uuidv4(),
-        text: sanitizedText,
-        timestamp: new Date(),
-        userId,
-        attachment: audioData
-            ? audioData  // Directly use recorded audio data if available
-            : attachment
-            ? await convertFileToBase64(attachment)  // Convert file to base64 if attachment is present
-            : null,
-        type: audioData
-            ? 'audio'
-            : attachment
-            ? (attachment.type.startsWith('image') ? 'image' : 'file')  // Better handling for non-image files
-            : 'text',
-        conversationId: chat.id,
-    };
+   let attachmentData = null;
+let messageType = 'text';
+
+if (audioData) {
+    attachmentData = audioData;
+    messageType = 'audio';
+} else if (attachment) {
+    attachmentData = await convertFileToBase64(attachment);
+    messageType = attachment.type.startsWith('image') ? 'image' : 'file';
+}
+
+const newMessage = {
+    id: uuidv4(),
+    text: sanitizedText,
+    timestamp: new Date(),
+        userId: process.env.REACT_APP_USER_ID || 'dummy_user_id',
+    attachment: attachmentData,
+    type: messageType,
+    conversationId: chat.id,
+};
+
 
     try {
         // Save message locally
@@ -274,11 +279,11 @@ useEffect(() => {
         setAudioData(null);
 
         // Send to server (if needed)
-        const token = localStorage.getItem('userToken');
+        const token = process.env.REACT_APP_USER_TOKEN || localStorage.getItem('userToken') || 'dummy_user_token';
         await axios.post(
-            API_URL,
+               process.env.REACT_APP_CHAT_API_URL || 'https://dummy-api.com/api/chats',
             { 
-                userId, 
+                userId: newMessage.userId,
                 chat_partner: chat.chat_partner, 
                 message: sanitizedText, 
                 attachment: newMessage.attachment,
@@ -570,44 +575,47 @@ useEffect(() => {
       {/* Messages Area */}
       <div className="flex-grow p-4 overflow-y-auto relative" ref={messagesContainerRef} onScroll={handleScroll}>
         <div className="max-w-2xl mx-auto">
-          {loading ? (
-            <p>Loading messages...</p>
-          ) : messages.length === 0 ? (
-            <p className="text-center text-gray-500">No messages yet</p>
-          ) : (
-            messages.map((msg) => (
-              <div 
-                key={msg.id} 
-                className={`flex mb-2 ${msg.userId === userId ? 'justify-end' : 'justify-start'}`} 
-                onClick={() => handleMessageLongPress(msg.id)}
-              >
-                <div 
-                  className={`rounded px-3 py-2 shadow whitespace-pre-wrap break-words max-w-[75%] ${
-                    msg.userId === userId ? 'bg-green-500 text-white ml-12' : 'bg-white text-black mr-12'
-                  }`}
-                >
-                  {/* Text Messages */}
-                  {msg.text || `[${msg.type} message]`}
-                  {/* Image Messages */}
-                  {msg.type === 'image' && (
-                    <img src={msg.attachment} alt="sent" className="max-w-xs rounded" />
-                  )}
-            
-                  {/* Audio Messages */}
-                  {msg.type === 'audio' && (
-                    <audio controls src={msg.attachment} className="max-w-xs" />
-                  )}
-            
-                  {/* Fallback for Unknown Attachments */}
-                  {!['text', 'image', 'audio'].includes(msg.type) && (
-                    <a href={msg.attachment} download className="text-blue-500 underline">
-                      Download Attachment
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+         {loading && <p>Loading messages...</p>}
+{!loading && messages.length === 0 && (
+    <p className="text-center text-gray-500">No messages yet</p>
+)}
+{!loading && messages.length > 0 && messages.map((msg) => (
+    <div 
+        key={msg.id} 
+        role="button" 
+        tabIndex="0"
+        onClick={() => handleMessageLongPress(msg.id)}
+        onKeyPress={(e) => e.key === 'Enter' && handleMessageLongPress(msg.id)}
+        className={`flex mb-2 ${msg.userId === userId ? 'justify-end' : 'justify-start'}`}
+    >
+        <div 
+            className={`rounded px-3 py-2 shadow whitespace-pre-wrap break-words max-w-[75%] ${
+                msg.userId === userId ? 'bg-green-500 text-white ml-12' : 'bg-white text-black mr-12'
+            }`}
+        >
+            {/* Text Messages */}
+            {msg.text || `[${msg.type} message]`}
+
+            {/* Image Messages */}
+            {msg.type === 'image' && (
+                <img src={msg.attachment} alt="sent" className="max-w-xs rounded" />
+            )}
+
+            {/* Audio Messages */}
+            {msg.type === 'audio' && (
+                <audio controls src={msg.attachment} className="max-w-xs" />
+            )}
+
+            {/* Fallback for Unknown Attachments */}
+            {!['text', 'image', 'audio'].includes(msg.type) && (
+                <a href={msg.attachment} download className="text-blue-500 underline">
+                    Download Attachment
+                </a>
+            )}
+        </div>
+    </div>
+))}
+
         </div>
         <div ref={messagesEndRef} />
       </div>
@@ -797,3 +805,18 @@ useEffect(() => {
     </div>
   );
 }
+ChatWindow.propTypes = {
+  chat: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.oneOf(['group', 'single']).isRequired,
+    admin_id: PropTypes.string,
+    onlyAdminCanMessage: PropTypes.bool,
+    group_icon: PropTypes.string,
+    group_name: PropTypes.string,
+    profile_image: PropTypes.string,
+    chat_partner: PropTypes.string,
+    isOnline: PropTypes.bool,
+  }).isRequired,
+  userId: PropTypes.string.isRequired,
+};
+

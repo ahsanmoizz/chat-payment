@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import axios from 'axios';
 import Call from './main pages/Call';
 import NewChatModal from './NewChatModal';
@@ -6,7 +6,7 @@ import NewGroupModal from './NewGroupModal';
 import CallLogs from './main pages/CallLogs';
 import { useTracker } from 'meteor/react-meteor-data';
 import { useNavigate } from "react-router-dom";
-
+import PropTypes from 'prop-types';
 const Sidebar = ({ onSelectChat }) => {
   const [chats, setChats] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -25,13 +25,13 @@ const Sidebar = ({ onSelectChat }) => {
   const navigate = useNavigate();
 
   // API URL from environment variables for production use.
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com';
 
   // Fetch individual chats.
   const fetchChats = async () => {
     try {
-      const token = localStorage.getItem('userToken');
-      const response = await axios.get(`${API_URL}/api/chats`, {
+      const token = localStorage.getItem('dummy_user_token');
+      const response = await axios.get(`https://dummy-api.com/api/chats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Mark each individual chat with a type "single"
@@ -47,8 +47,8 @@ const Sidebar = ({ onSelectChat }) => {
   // Fetch group chats.
   const fetchGroups = async () => {
     try {
-      const token = localStorage.getItem('userToken');
-      const response = await axios.get(`${API_URL}/api/groups`, {
+      const token = localStorage.getItem('dummy_user_token');
+      const response = await axios.get(`https://dummy-api.com/api/groups`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Mark each group chat with type "group"
@@ -62,37 +62,32 @@ const Sidebar = ({ onSelectChat }) => {
   };
 
   useEffect(() => {
+    // Fetch chats and groups on initial load
     fetchChats();
     fetchGroups();
-    // Fetch user profile details from Meteor.user() or your API
-    if (user) {
-      setUserProfile({
-        name: user.profile && user.profile.name ? user.profile.name : 'My Profile',
-        profile_image:
-          user.profile && user.profile.profile_image
-            ? user.profile.profile_image
-            : process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40',
-      });
-    }
-  }, [user]);
 
-  useEffect(() => {
-    const userId = user && user._id; // Meteor user id
-  
+    // Set user profile if user is available
+    if (user) {
+        setUserProfile({
+            name: user.profile?.name || 'My Profile',
+            profile_image: user.profile?.profile_image || process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40',
+        });
+    }
+}, [user]);
+
+useEffect(() => {
+    const userId = Meteor.userId() || localStorage.getItem("dummy_user_id");
     if (!userId) return;
-  
-    axios
-      .get(`http://localhost:5000/api/subscription-check/${userId}`)
-      .then((res) => {
-        if (res.data.isExpired) {
-          // You can show a modal or redirect to the Subscription page
-          alert("🚨 Your free trial has expired. Please upgrade your subscription.");
-        }
-      })
-      .catch((err) => {
-        console.error("Subscription check failed", err);
-      });
-  }, [user]);
+    
+    axios.get(`https://dummy-api.com/api/subscription-check/${userId}`)
+        .then((res) => {
+            if (res.data.expired) {
+                alert("🚨 Your subscription expired. Please renew to continue using features.");
+            }
+        })
+        .catch((err) => console.error("Subscription check failed", err));
+}, []);
+
 
   // Merge chats and groups into a single list.
   const combinedChats = [...chats, ...groups];
@@ -182,54 +177,60 @@ const Sidebar = ({ onSelectChat }) => {
 
       {/* Chat List */}
       <div className="flex-grow overflow-y-auto">
-        {loadingChats || loadingGroups ? (
-          <div className="p-4 text-center text-gray-600">Loading chats...</div>
-        ) : filteredChats.length === 0 ? (
-          <div className="p-4 text-center text-gray-600">No chats found.</div>
-        ) : (
-          filteredChats.map((chat) => (
-            <div
-              key={chat.id}
-              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-200 transition-colors"
-              onClick={() => handleChatClick(chat)}
-            >
-              <div className="flex items-center space-x-3">
-                <img
-                  src={
-                    chat.type === 'group'
-                      ? chat.group_icon || process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40'
-                      : chat.profile_image || process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40'
-                  }
-                  alt={chat.type === 'group' ? chat.group_name : chat.chat_partner}
-                  className="w-12 h-12 rounded-full border border-gray-300 shadow-sm object-cover"
-                />
-                <div>
-                  <div className="font-semibold text-base">
-                    {chat.type === 'group' ? chat.group_name : chat.chat_partner}
-                  </div>
-                  <div className="text-sm text-gray-600 truncate max-w-xs">
-                    {chat.last_message}
-                  </div>
+     {loadingChats || loadingGroups ? (
+    <div className="p-4 text-center text-gray-600">Loading chats...</div>
+  ) : (
+    <>
+      {filteredChats.length === 0 ? (
+        <div className="p-4 text-center text-gray-600">No chats found.</div>
+      ) : (
+        filteredChats.map((chat) => (
+          <button
+            key={chat.id}
+            className="flex items-center justify-between px-4 py-3 w-full text-left cursor-pointer hover:bg-gray-200 transition-colors rounded-lg"
+            onClick={() => handleChatClick(chat)}
+            role="button"
+            tabIndex="0"
+          >
+            <div className="flex items-center space-x-3">
+              <img
+                src={
+                  chat.type === 'group'
+                    ? chat.group_icon || process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40'
+                    : chat.profile_image || process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40'
+                }
+                alt={chat.type === 'group' ? chat.group_name : chat.chat_partner}
+                className="w-12 h-12 rounded-full border border-gray-300 shadow-sm object-cover"
+              />
+              <div>
+                <div className="font-semibold text-base">
+                  {chat.type === 'group' ? chat.group_name : chat.chat_partner}
+                </div>
+                <div className="text-sm text-gray-600 truncate max-w-xs">
+                  {chat.last_message}
                 </div>
               </div>
-              <div className="text-xs text-gray-500">
-                {new Date(chat.updated_at).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCallClick(chat);
-                }}  
-                className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 transition text-white rounded-full shadow-md"
-              >
-                Call
-              </button>
             </div>
-          ))
-        )}
+            <div className="text-xs text-gray-500">
+              {new Date(chat.updated_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCallClick(chat);
+              }}
+              className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 transition text-white rounded-full shadow-md"
+            >
+              Call
+            </button>
+          </button>
+        ))
+      )}
+    </>
+  )}
       </div>
 
       {/* Bottom Buttons */}
@@ -306,5 +307,7 @@ const Sidebar = ({ onSelectChat }) => {
     </div>
   );
 };
-
+Sidebar.prototypes = {
+  onSelectChat: PropTypes.func,
+};
 export default Sidebar;

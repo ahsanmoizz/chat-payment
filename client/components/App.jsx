@@ -14,25 +14,22 @@ import Deposit from "../../PaymentFrontend/Deposit";
 import Withdraw from "../../PaymentFrontend/Withdraw";
 import TokenTransfer from "../../PaymentFrontend/TokenTransfer";
 import Receive from "../../PaymentFrontend/Receive";
-import MultiSig from "../../PaymentFrontend/MultiSig";
+import MultiSig from "../../PaymentFrontend/Multisig";
 import Escrow from "../../PaymentFrontend/Escrow";
 import Sidebar from "../../PaymentFrontend/Sidebar";
 import TxViewer from "../../PaymentFrontend/TransactionViewer";
 import TransferQueue from "../../PaymentFrontend/TransferQueue";
-// ❌ Removed unused import: import { Web3Provider } from "./payment frontend/context/Web3Context";
-
 // ✅ App Component
 const App = () => {
   // Communication auth state
-  const [commAuthenticated, setCommAuthenticated] = useState(!!localStorage.getItem("userToken"));
-
+  const [commAuthenticated] = useState(!!localStorage.getItem("userToken") || process.env.REACT_APP_USER_TOKEN === "dummy_user_token");
   // Payment auth state
   const [payAuthenticated, setPayAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);
 
   useEffect(() => {
-    const session = localStorage.getItem("userSession");
-    const type = localStorage.getItem("userType");
+    const session = localStorage.getItem("userSession")|| process.env.REACT_APP_USER_SESSION;
+    const type = localStorage.getItem("userType") || process.env.REACT_APP_USER_TYPE;
     if (session && type) {
       setPayAuthenticated(true);
       setUserType(type);

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode'; // For decoding JWT tokens
 import { X, UserPlus, Users } from 'lucide-react'; // SVG icons
+import PropTypes from 'prop-types';
 // Set your API URL and fallback avatar from environment variables.
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com';
 const FALLBACK_AVATAR = process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40';
 
 const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
@@ -18,9 +19,10 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
     const fetchContacts = async () => {
       setLoading(true);
       try {
-        const token = userToken || localStorage.getItem('userToken');
+        const token = userToken || localStorage.getItem('dummy_user_token');
         const response = await axios.get(`${API_URL}/api/users`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer dummy_user_token`
+ },
         });
         setContacts(response.data);
       } catch (error) {
@@ -41,7 +43,8 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
   };
 
   const handleGroupIconChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+  if (e.target.files?.[0]) 
+ {
       setGroupIcon(e.target.files[0]);
     }
   };
@@ -64,7 +67,7 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
         });
       }
       // Decode the token to get the current user’s ID for admin role.
-      const token = userToken || localStorage.getItem('userToken');
+      const token = userToken || localStorage.getItem('dummy_user_token');
       const decoded = jwtDecode(token);
       const adminId = decoded.id;
       // Ensure the admin is included in the group members.
@@ -78,8 +81,9 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
         memberIds,
         adminId,
       };
-      const response = await axios.post(`${API_URL}/api/groups`, groupData, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.post("https://dummy-api.com/api/groups", groupData, {
+        headers: { Authorization: `Bearer dummy_user_token`
+ },
       });
       // Notify parent component that a new group has been created.
       onGroupCreated(response.data);
@@ -117,28 +121,33 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
           className="mb-4 p-2 border rounded-lg w-full cursor-pointer"
         />
         <div className="max-h-64 overflow-y-auto border p-2 mb-4 rounded-lg">
-          {loading ? (
-            <p className="text-gray-600">Loading contacts...</p>
-          ) : contacts.length === 0 ? (
-            <p className="text-gray-600">No contacts found.</p>
-          ) : (
-            contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                  selectedContacts.includes(contact.id) ? 'bg-purple-100' : 'hover:bg-gray-100'
-                }`}
-                onClick={() => handleContactSelect(contact.id)}
-              >
-                <img
-                  src={contact.profile_image || FALLBACK_AVATAR}
-                  alt={contact.name}
-                  className="w-10 h-10 rounded-full mr-3 border"
-                />
-                <span className="text-gray-700 font-medium">{contact.name}</span>
-              </div>
-            ))
-          )}
+          {loading && <p className="text-gray-600">Loading contacts...</p>}
+
+{!loading && contacts.length === 0 && (
+  <p className="text-gray-600">No contacts found.</p>
+)}
+
+{!loading && contacts.length > 0 && (
+  contacts.map((contact) => (
+    <button
+      key={contact.id}
+      role="button"
+      tabIndex="0"
+      className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 text-left ${
+        selectedContacts.includes(contact.id) ? 'bg-purple-100' : 'hover:bg-gray-100'
+      }`}
+      onClick={() => handleContactSelect(contact.id)}
+    >
+      <img
+        src={contact.profile_image || FALLBACK_AVATAR}
+        alt={contact.name}
+        className="w-10 h-10 rounded-full mr-3 border"
+      />
+      <span className="text-gray-700 font-medium">{contact.name}</span>
+    </button>
+  ))
+)}
+
         </div>
         <button
           onClick={createGroup}
@@ -152,4 +161,9 @@ const NewGroupModal = ({ onClose, onGroupCreated, userToken }) => {
   );
 };
 
+NewGroupModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onGroupCreated: PropTypes.func.isRequired,
+  userToken: PropTypes.string,
+};
 export default NewGroupModal;

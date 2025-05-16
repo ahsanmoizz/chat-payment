@@ -3,13 +3,13 @@ const router = express.Router();
 const { ethers } = require("ethers");
 const { updateUserBalance } = require("../services/balanceServices");
 const recordTransaction = require("../utils/recordTransaction");
-const MultiAssetWalletABI = require("../../abis/MultiAssetWallet.json");
+const MultiAssetWalletABI = require("../../PaymentFrontend/ContractABI.json");
 
 // Setup provider and wallet
-const provider = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const provider = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL||"https://dummy-infura.io/v3/YOUR_INFURA_PROJECT_ID");
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider||"0xDUMMY_PRIVATE_KEY_1234567890abcdef1234567890abcdef12345678");
 const contract = new ethers.Contract(
-  process.env.MULTI_ASSET_WALLET_ADDRESS,
+  process.env.MULTI_ASSET_WALLET_ADDRESS|| "0xDUMMY_CONTRACT_ADDRESS_1234567890abcdef1234567890abcdef",
   MultiAssetWalletABI,
   wallet
 );

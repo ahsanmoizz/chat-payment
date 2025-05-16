@@ -5,11 +5,11 @@ import { QRCodeCanvas } from "qrcode.react";
 import QrReader from "react-qr-reader";
 import { supportedTokens } from "./utils/tokens";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
-import MultiAssetWalletABI from "../abis/MultiAssetWallet.json";
-import { MULTI_ASSET_WALLET_ADDRESS } from "../config/constants";
+import MultiAssetWalletABI from "./ContractABI.json";
+import { MULTI_ASSET_WALLET_ADDRESS } from "./constants";
 import axios from "axios";
-import UserRegistrationABI from "../abis/UserRegistrationABI.json";
-import { USER_REG_CONTRACT_ADDRESS } from "../config/constants";
+import UserRegistrationABI from "./UserRegistrationABI.json";
+import { USER_REG_CONTRACT_ADDRESS } from "./constants";
 
 function isNonEvmToken(symbol) {
   const nonEvmList = ["BTC", "XRP", "DOGE", "SOL", "LTC", "ADA", "DOT", "ATOM", "XLM", "BCH"];
@@ -117,7 +117,7 @@ export default function TokenTransfer() {
       const tokenObj = supportedTokens.find(t => t.symbol === selectedToken);
 
       if (delay !== "0") {
-        await axios.post("http://localhost:5000/api/delayed-transfer", {
+        await axios.post("https://dummyapi.yourdomain.com/api/delayed-transfer", {
           sender: address,
           recipient: resolvedAddress,
           token: tokenObj.symbol,
@@ -144,7 +144,7 @@ export default function TokenTransfer() {
         setTxHash(tx.hash);
         alert("✅ Transfer successful!");
 
-        await axios.post("http://localhost:5000/api/evm-tx-log", {
+        await axios.post("https://dummyapi.yourdomain.com/api/evm-tx-log", {
           userAddress: address,
           direction: "transfer",
           token: tokenObj.symbol,
@@ -155,7 +155,7 @@ export default function TokenTransfer() {
         });
       }
 
-      await axios.post("http://localhost:5000/api/balances/update", {
+      await axios.post("https://dummyapi.yourdomain.com/api/balances/update", {
         evmAddress: address,
         coin: selectedToken,
         amount: "0",

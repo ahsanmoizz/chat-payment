@@ -9,7 +9,7 @@ const server = http.createServer();
 // Initialize Socket.IO with secure CORS options.
 const io = socketIO(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || 'https://your-secure-domain.com',
+    origin: process.env.CLIENT_ORIGIN || 'https://dummy-secure-domain.com',
     methods: ['GET', 'POST'],
     credentials: true,
   },

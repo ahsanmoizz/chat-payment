@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
-
+import PropTypes from 'prop-types';
 const Email2FA = ({ action, onAuthSuccess }) => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -19,7 +19,7 @@ const Email2FA = ({ action, onAuthSuccess }) => {
 
   // Handle profile picture selection.
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+   if (e.target.files?.[0]) {
       setProfilePic(e.target.files[0]);
     }
   };
@@ -192,6 +192,10 @@ const Email2FA = ({ action, onAuthSuccess }) => {
       {message && <p className="mt-4 text-center text-red-500">{message}</p>}
     </div>
   );
+};
+Email2FA.propTypes = {
+  action: PropTypes.oneOf(['login', 'register']).isRequired,
+  onAuthSuccess: PropTypes.func,
 };
 
 export default Email2FA;

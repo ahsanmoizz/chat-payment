@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 
 // Use environment variable for the users endpoint.
-const USERS_API_URL = process.env.REACT_APP_USERS_API_URL || 'https://api.yourdomain.com/api/users';
+const USERS_API_URL = process.env.REACT_APP_USERS_API_URL || 'https://dummy-api.com/api/users';
 
 const ForwardModal = ({ onClose, selectedMessageIds, messages, userId, onForwardComplete }) => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState([]);
+
   useEffect(() => {
     const fetchContacts = async () => {
       setLoading(true);
@@ -27,6 +29,7 @@ const ForwardModal = ({ onClose, selectedMessageIds, messages, userId, onForward
         setLoading(false);
       }
     };
+
     fetchContacts();
   }, []);
 
@@ -42,31 +45,68 @@ const ForwardModal = ({ onClose, selectedMessageIds, messages, userId, onForward
       console.error('No user token found.');
       return;
     }
-    // Loop over each selected contact and each selected message
-    for (let contact of selectedContacts) {
-      for (let msgId of selectedMessageIds) {
-        const msg = messages.find((m) => m.id === msgId);
-        if (msg) {
-          try {
+
+    try {
+      for (let contact of selectedContacts) {
+        for (let msgId of selectedMessageIds) {
+          const msg = messages.find((m) => m.id === msgId);
+          if (msg) {
             await axios.post(
-              process.env.REACT_APP_API_CHATS_URL || 'https://api.yourdomain.com/api/chats',
+              process.env.REACT_APP_API_CHATS_URL || 'https://dummy-api.com/api/chats',
               {
                 userId,
                 chat_partner: contact,
                 message: msg.text,
-                media: msg.media || null,  // ✅ Added
-                link: msg.link || null,    // ✅ Added
+                media: msg.media || null,
+                link: msg.link || null,
               },
               { headers: { Authorization: `Bearer ${token}` } }
             );
-          } catch (error) {
-            console.error(`Error forwarding message ${msgId} to contact ${contact}:`, error);
           }
         }
       }
+      onForwardComplete();
+      onClose();
+    } catch (error) {
+      console.error('Error forwarding messages:', error);
     }
-    onForwardComplete();
-    onClose();
+  };
+
+  const renderContacts = () => {
+    if (loading) {
+      return <p className="text-center text-gray-500">Loading contacts...</p>;
+    }
+
+    if (contacts.length === 0) {
+      return <p className="text-center text-gray-500">No contacts found.</p>;
+    }
+
+    return (
+      <div className="max-h-64 overflow-y-auto space-y-2">
+        {contacts.map((contact) => (
+          <button
+            key={contact.id}
+            role="button"
+            aria-pressed={selectedContacts.includes(contact.id)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg border ${
+              selectedContacts.includes(contact.id) ? "bg-blue-50 border-blue-500" : "border-gray-200"
+            } hover:bg-gray-100 cursor-pointer transition text-left`}
+            onClick={() => toggleContact(contact.id)}
+          >
+            <div>
+              <p className="font-medium text-gray-800">{contact.name}</p>
+              <p className="text-sm text-gray-500">{contact.phone}</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={selectedContacts.includes(contact.id)}
+              readOnly
+              className="w-5 h-5 text-blue-600 border-gray-300 rounded"
+            />
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -84,34 +124,7 @@ const ForwardModal = ({ onClose, selectedMessageIds, messages, userId, onForward
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Forward to:</h2>
 
         {/* Contact List */}
-        {loading ? (
-          <p className="text-center text-gray-500">Loading contacts...</p>
-        ) : contacts.length === 0 ? (
-          <p className="text-center text-gray-500">No contacts found.</p>
-        ) : (
-          <div className="max-h-64 overflow-y-auto space-y-2">
-            {contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  selectedContacts.includes(contact.id) ? "bg-blue-50 border-blue-500" : "border-gray-200"
-                } hover:bg-gray-100 cursor-pointer transition`}
-                onClick={() => toggleContact(contact.id)}
-              >
-                <div>
-                  <p className="font-medium text-gray-800">{contact.name}</p>
-                  <p className="text-sm text-gray-500">{contact.phone}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={selectedContacts.includes(contact.id)}
-                  readOnly
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        {renderContacts()}
 
         {/* Buttons */}
         <div className="mt-6 flex justify-end space-x-3">
@@ -131,6 +144,21 @@ const ForwardModal = ({ onClose, selectedMessageIds, messages, userId, onForward
       </div>
     </div>
   );
+};
+
+ForwardModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  selectedMessageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  messages: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      text: PropTypes.string.isRequired,
+      media: PropTypes.string,
+      link: PropTypes.string,
+    })
+  ).isRequired,
+  userId: PropTypes.string.isRequired,
+  onForwardComplete: PropTypes.func.isRequired,
 };
 
 export default ForwardModal;

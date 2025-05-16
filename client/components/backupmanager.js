@@ -56,7 +56,7 @@ export const uploadBackupToDrive = async () => {
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
     {
       method: 'POST',
-      headers: new Headers({ Authorization: 'Bearer ' + accessToken }),
+      headers: new Headers({ Authorization: 'Bearer '  + (process.env.REACT_APP_GOOGLE_ACCESS_TOKEN || 'dummy_access_token') }),
       body: form
     }
   );

@@ -1,0 +1,9 @@
+{
+  "EMAIL_FROM": "no-reply@dummyapp.com",
+  "SMTP": {
+    "username": "dummy_smtp_user",
+    "password": "dummy_smtp_password",
+    "server": "smtp.dummyprovider.com",
+    "port": 587
+  }
+}

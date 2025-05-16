@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "../hooks/useBiconomyWallet";
 import { QRCodeCanvas } from "qrcode.react";
-import { getAccountNumberFromAddress } from "../utils/accountUtils";
 import { supportedTokens } from "../utils/tokens";
-import MultiAssetWalletABI from "../abis/MultiAssetWallet.json";
-import { MULTI_ASSET_WALLET_ADDRESS, USER_REG_CONTRACT_ADDRESS } from "../config/constants";
-import Sidebar from "../components/Sidebar";
+import MultiAssetWalletABI from "./ContractABI.json";
+import { MULTI_ASSET_WALLET_ADDRESS, USER_REG_CONTRACT_ADDRESS } from "./constants";
+import Sidebar from "./components/Sidebar";
 import axios from "axios";
-import UserRegistrationABI from "../abis/UserRegistrationABI.json";
+import UserRegistrationABI from "./UserRegistrationABI.json";
 
 export default function Dashboard() {
   const { smartAccount, address } = useBiconomyWallet();
@@ -82,12 +81,12 @@ export default function Dashboard() {
       }
       setTokenBalances(balances);
 
-      const res = await axios.get(`http://localhost:5000/api/balances/${address}`);
+      const res = await axios.get(`https://dummyapi.yourdomain.com/api/balances/${address}`);
       if (res.data?.balances) {
         setNonEvmBalances(res.data.balances);
       }
 
-      const walletRes = await axios.get(`/api/wallet/${address}`);
+      const walletRes = await axios.get(`https://dummyapi.yourdomain.com/api/wallet/${address}`);
       setWalletAddresses(walletRes.data.data);
     } catch (err) {
       console.error("Failed to fetch balances", err);
@@ -137,11 +136,12 @@ export default function Dashboard() {
           <h3 className="font-semibold mb-2">EVM Token Balances</h3>
           {tokenBalances.length > 0 ? (
             <ul>
-              {tokenBalances.map((token, idx) => (
-                <li key={idx} className="border-b py-1">
-                  {token.token}: {token.amount}
-                </li>
-              ))}
+            {tokenBalances.map((token) => (
+  <li key={token.token} className="border-b py-1">
+    {token.token}: {token.amount}
+  </li>
+))}
+
             </ul>
           ) : (
             <p>No tokens found.</p>

@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
 import { X, UserPlus, ShieldCheck, Users } from "lucide-react"; // ShieldCheck for Admin badge
 import GroupMessagingToggle from "./GroupMessagingToggle"; // Adjust the path as needed
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+import PropTypes from 'prop-types';
+const API_URL = process.env.REACT_APP_API_URL || "https://dummy-api.com";
 const FALLBACK_AVATAR = process.env.REACT_APP_FALLBACK_AVATAR || "https://via.placeholder.com/40";
 
 const GroupSettings = ({ groupId, onClose, userToken }) => {
   const [groupData, setGroupData] = useState(null);
   const [members, setMembers] = useState([]);
   const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [ setLoading] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState("");
 
   useEffect(() => {
@@ -22,7 +22,8 @@ const GroupSettings = ({ groupId, onClose, userToken }) => {
     try {
       const token = userToken || localStorage.getItem("userToken");
       const response = await axios.get(`${API_URL}/api/groups/${groupId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer dummy_token`
+ },
       });
       // Save full group data for toggling messaging mode
       setGroupData(response.data);
@@ -124,5 +125,9 @@ const GroupSettings = ({ groupId, onClose, userToken }) => {
     </div>
   );
 };
-
+GroupSettings.propTypes = {
+  groupId: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+  userToken: PropTypes.string.isRequired,
+};
 export default GroupSettings;

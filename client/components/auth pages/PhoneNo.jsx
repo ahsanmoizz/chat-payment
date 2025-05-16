@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
-
+import PropTypes from 'prop-types';
 // Basic phone number formatter: trim whitespace (further formatting/validation can be added as needed)
 const formatPhoneNumber = (input) => {
   return input.trim();
@@ -24,7 +24,7 @@ const OTPLogin = ({ action, onAuthSuccess }) => {
   const isValidOtp = (otp) => /^\d{8}$/.test(otp);
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+   if (e.target.files?.[0]) {
       setProfilePic(e.target.files[0]);
     }
   };
@@ -161,5 +161,8 @@ const OTPLogin = ({ action, onAuthSuccess }) => {
     </div>
   );
 };
-
+OTPLogin.propTypes = {
+  action: PropTypes.oneOf(['login', 'register']).isRequired,
+  onAuthSuccess: PropTypes.func,
+};
 export default OTPLogin;

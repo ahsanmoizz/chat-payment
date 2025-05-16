@@ -28,21 +28,23 @@ const Sidebar = () => {
     <div className="bg-gray-800 text-white w-64 min-h-screen p-4">
       <h2 className="text-xl font-bold mb-6">Wallet Menu</h2>
       <ul className="space-y-3">
-        {navItems.map((item, idx) => (
-          <li
-            key={idx}
-            onClick={() => navigate(item.path)}
-            className="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded"
-          >
-            {item.label}
-          </li>
-        ))}
-        <li
-          onClick={handleLogout}
-          className="cursor-pointer text-red-400 hover:text-white hover:bg-red-500 px-3 py-2 rounded mt-4"
-        >
-          Logout
-        </li>
+      {navItems.map((item) => (
+  <button
+    key={item.path}
+    onClick={() => navigate(item.path)}
+    className="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded text-left w-full"
+  >
+    {item.label}
+  </button>
+))}
+
+      <button
+  onClick={handleLogout}
+  className="cursor-pointer text-red-400 hover:text-white hover:bg-red-500 px-3 py-2 rounded mt-4 w-full text-left"
+>
+  Logout
+</button>
+
       </ul>
     </div>
   );

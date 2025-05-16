@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
 import UserRegistrationABI from "./UserRegistrationABI.json";
 import * as faceapi from "face-api.js";
-import { USER_REG_CONTRACT_ADDRESS } from "../config/constants";
+import { USER_REG_CONTRACT_ADDRESS } from "./constants";
 
 function Register() {
   const { smartAccount, address } = useBiconomyWallet();

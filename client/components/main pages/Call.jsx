@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { IoCallEnd, IoVideocam, IoVideocamOff, IoMic, IoMicOff } from 'react-icons/io5';
 import { addCallLog } from './callmanager';
-
+import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to modify SDP for codec preferences.
@@ -16,42 +16,48 @@ function modifySDP(sdp) {
   });
 
   // For video: Prefer AV1 if available.
-  if (mVideoLineIndex !== -1) {
+ if (mVideoLineIndex !== -1) {
     const parts = lines[mVideoLineIndex].split(' ');
     const header = parts.slice(0, 3).join(' ');
     let payloads = parts.slice(3);
     const av1Payloads = [];
     const otherPayloads = [];
+
     payloads.forEach((pt) => {
-      const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
-      if (rtpmapLine && rtpmapLine.toLowerCase().includes('av01')) {
-        av1Payloads.push(pt);
-      } else {
-        otherPayloads.push(pt);
-      }
+        const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
+        // Use optional chaining for cleaner checks
+        if (rtpmapLine?.toLowerCase().includes('av01')) {
+            av1Payloads.push(pt);
+        } else {
+            otherPayloads.push(pt);
+        }
     });
-    payloads = [...av1Payloads, ...otherPayloads];
-    lines[mVideoLineIndex] = `${header} ${payloads.join(' ')}`;
-  }
+
+    // Rebuild the line with AV1 prioritized
+    lines[mVideoLineIndex] = `${header} ${[...av1Payloads, ...otherPayloads].join(' ')}`;
+}
 
   // For audio: Ensure Opus is prioritized.
-  if (mAudioLineIndex !== -1) {
+if (mAudioLineIndex !== -1) {
     const parts = lines[mAudioLineIndex].split(' ');
     const header = parts.slice(0, 3).join(' ');
     let payloads = parts.slice(3);
     const opusPayloads = [];
     const otherAudioPayloads = [];
+
+    // Use optional chaining for cleaner and safer RTP line checks
     payloads.forEach((pt) => {
-      const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
-      if (rtpmapLine && rtpmapLine.toLowerCase().includes('opus')) {
-        opusPayloads.push(pt);
-      } else {
-        otherAudioPayloads.push(pt);
-      }
+        const rtpmapLine = lines.find((l) => l.startsWith(`a=rtpmap:${pt} `));
+        if (rtpmapLine?.toLowerCase().includes('opus')) {
+            opusPayloads.push(pt);
+        } else {
+            otherAudioPayloads.push(pt);
+        }
     });
-    payloads = [...opusPayloads, ...otherAudioPayloads];
-    lines[mAudioLineIndex] = `${header} ${payloads.join(' ')}`;
-  }
+
+    // Rebuild the line with Opus prioritized
+    lines[mAudioLineIndex] = `${header} ${[...opusPayloads, ...otherAudioPayloads].join(' ')}`;
+}
 
   return lines.join('\r\n');
 }
@@ -72,7 +78,7 @@ const Call = ({ callType = "video" }) => { // callType prop determines call mode
     callStartTimeRef.current = Date.now();
 
     // Establish a secure Socket.io connection (replace URL/token as needed)
-    const s = io('https://your-secure-domain.com', { query: { token: 'user-authentication-token' }, secure: true });
+    const s = io('https://dummy-signaling-server.com', { query: { token: 'dummy-auth-token' }, secure: true });
   // for production replace io(process.env.REACT_APP_SIGNALING_URL, { query: { token: process.env.REACT_APP_AUTH_TOKEN }, secure: true });
 
 
@@ -251,5 +257,7 @@ const Call = ({ callType = "video" }) => { // callType prop determines call mode
     </div>
   );
 };
-
+Call.propTypes = {
+  callType: PropTypes.oneOf(['video', 'audio']).isRequired,
+};
 export default Call;
