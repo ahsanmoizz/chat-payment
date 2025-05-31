@@ -1,18 +1,20 @@
 const axios = require("axios");
-
-const TATUM_API_KEY = "DUMMY_TATUM_API_KEY_1234567890abcdef";//replace with actual tatum api key 
-const TATUM_WEBHOOK_URL = "https://dummy-tatum-api.io/v3/subscription";
-
+const { ethers } = require("ethers"); 
+const { getSetting } = require("../utils/appSettings");
+async function registerAllHooks() {
+const TATUM_API_KEY = await getSetting("TATUM_API_KEY");
+const TATUM_WEBHOOK_URL = await getSetting("TATUM_WEBHOOK_BASE_URL");
 const SUPPORTED_CHAINS = ["BTC", "XRP", "LTC", "DOGE", "SOL"];
-const BASE_URL = "https://dummy-server.com/api/deposit-hook";
+ const API_URL = process.env.REACT_APP_API_URL ;
+const BASE_URL = `${API_URL}/api/deposit-hook`;
 
-const evmAddress = "0x123abc..."; // Replace dynamically
+const evmAddress = await getSetting("REACT_APP_ADMIN_WALLET");
 const generateWallet = (coin) => {
   const hash = ethers.utils.keccak256(Buffer.from(evmAddress + coin));
   return `${coin.toLowerCase()}_wallet_${hash.slice(2, 10)}`;
 };
 
-async function registerAllHooks() {
+
   for (const chain of SUPPORTED_CHAINS) {
     const address = generateWallet(chain);
     try {

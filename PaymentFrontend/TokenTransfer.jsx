@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { ethers } from "ethers";
 import { QRCodeCanvas } from "qrcode.react";
-import QrReader from "react-qr-reader";
+import QrScanner from "react-qr-scanner";
 import { supportedTokens } from "./utils/tokens";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
 import MultiAssetWalletABI from "./ContractABI.json";
@@ -11,6 +11,7 @@ import axios from "axios";
 import UserRegistrationABI from "./UserRegistrationABI.json";
 import { USER_REG_CONTRACT_ADDRESS } from "./constants";
 
+const API_URL = process.env.REACT_APP_API_URL ;
 function isNonEvmToken(symbol) {
   const nonEvmList = ["BTC", "XRP", "DOGE", "SOL", "LTC", "ADA", "DOT", "ATOM", "XLM", "BCH"];
   return nonEvmList.includes(symbol.toUpperCase());
@@ -117,7 +118,7 @@ export default function TokenTransfer() {
       const tokenObj = supportedTokens.find(t => t.symbol === selectedToken);
 
       if (delay !== "0") {
-        await axios.post("https://dummyapi.yourdomain.com/api/delayed-transfer", {
+        await axios.post(`${API_URL}/api/delayed-transfer`, {
           sender: address,
           recipient: resolvedAddress,
           token: tokenObj.symbol,
@@ -128,23 +129,32 @@ export default function TokenTransfer() {
 
         alert("✅ Transfer scheduled!");
         return;
-      } else {
-        let tx;
-        if (tokenObj.symbol === "ETH") {
-          tx = await contract.transferETH(resolvedAddress, ethers.utils.parseEther(amount));
-        } else {
-          tx = await contract.transferERC20(
-            tokenObj.address,
-            resolvedAddress,
-            ethers.utils.parseUnits(amount, tokenObj.decimals)
-          );
+      } else{
+      // ✅ Balance check (only for EVM tokens)
+      if (!isNonEvmToken(tokenObj.symbol)) {
+        const rawBalance = await contract.getBalance(tokenObj.address, address);
+        const parsedAmount = ethers.utils.parseUnits(amount, tokenObj.decimals);
+        if (rawBalance.lt(parsedAmount)) {
+          return alert("❌ Insufficient balance");
         }
+      }
 
-        await tx.wait();
-        setTxHash(tx.hash);
-        alert("✅ Transfer successful!");
+      let tx;
+      if (tokenObj.symbol === "ETH") {
+        tx = await contract.transferETH(resolvedAddress, ethers.utils.parseEther(amount));
+      } else {
+        tx = await contract.transferERC20(
+          tokenObj.address,
+          resolvedAddress,
+          ethers.utils.parseUnits(amount, tokenObj.decimals)
+        );
+      }
 
-        await axios.post("https://dummyapi.yourdomain.com/api/evm-tx-log", {
+      await tx.wait();
+      setTxHash(tx.hash);
+      alert("✅ Transfer successful!");
+
+        await axios.post(`${API_URL}/api/evm-tx-log`, {
           userAddress: address,
           direction: "transfer",
           token: tokenObj.symbol,
@@ -155,7 +165,7 @@ export default function TokenTransfer() {
         });
       }
 
-      await axios.post("https://dummyapi.yourdomain.com/api/balances/update", {
+      await axios.post(`${API_URL}/api/balances/update`, {
         evmAddress: address,
         coin: selectedToken,
         amount: "0",
@@ -168,26 +178,34 @@ export default function TokenTransfer() {
   };
 
   const qrValue = accountNumber ? `app://pay?acct=${accountNumber}` : "";
+return (
+  <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] flex justify-center items-start py-12 px-4 text-white">
+    <div className="relative w-full max-w-xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8 animate-fade-in">
 
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Send Tokens</h2>
+      {/* Glowing SVG */}
+      <svg className="absolute -top-8 -right-8 w-24 h-24 text-purple-500/30 animate-pulse" fill="none" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" fill="currentColor" />
+      </svg>
 
-      <div className="space-y-4 max-w-md">
+      <h2 className="text-3xl font-bold mb-8 text-center tracking-wide">🚀 Send Tokens</h2>
+
+      <div className="space-y-5">
+
+        {/* Recipient */}
         <input
           type="text"
           placeholder="Recipient (Username / Account / Wallet)"
           value={recipient}
           onChange={(e) => setRecipient(e.target.value)}
-          className="border p-2 w-full rounded"
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all"
         />
 
+        {/* Token Select */}
         <select
           value={selectedToken}
           onChange={(e) => setSelectedToken(e.target.value)}
-          className="border p-2 w-full rounded"
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
         >
-          <option value="ETH">Ethereum (ETH)</option>
           {supportedTokens.map(token =>
             token.symbol !== "ETH" && (
               <option key={token.symbol} value={token.symbol}>
@@ -197,18 +215,20 @@ export default function TokenTransfer() {
           )}
         </select>
 
+        {/* Amount */}
         <input
           type="number"
           placeholder="Amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="border p-2 w-full rounded"
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
         />
 
+        {/* Delay Select */}
         <select
           value={delay}
           onChange={(e) => setDelay(e.target.value)}
-          className="border p-2 rounded w-full"
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
         >
           <option value="0">Immediate</option>
           <option value="1">1 minute</option>
@@ -216,58 +236,60 @@ export default function TokenTransfer() {
           <option value="30">30 minutes</option>
         </select>
 
-        <div className="flex justify-between items-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
           <button
             onClick={handleTransfer}
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            className="flex-1 py-3 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:scale-[1.02] transition-transform shadow-md"
           >
             Send {selectedToken}
           </button>
           <button
             onClick={() => setShowScanner(true)}
-            className="ml-4 border px-4 py-2 rounded hover:bg-gray-100"
+            className="flex-1 py-3 px-6 rounded-xl font-semibold bg-white/10 border border-white/20 hover:bg-white/20 transition"
           >
-            Scan QR
+            📷 Scan QR
           </button>
         </div>
 
+        {/* Tx Hash */}
         {txHash && (
-          <p className="text-green-600 mt-2">
-            Tx Hash:{" "}
+          <p className="text-green-300 text-sm mt-2 break-words">
+            ✅ Tx Hash:&nbsp;
             <a
               href={`https://etherscan.io/tx/${txHash}`}
               target="_blank"
               rel="noreferrer"
-              className="underline"
+              className="underline hover:text-green-200"
             >
               {txHash}
             </a>
           </p>
         )}
 
+        {/* QR Code Display */}
         {address && accountNumber && (
-          <div className="mt-6 p-4 border rounded bg-gray-50">
-            <h3 className="font-semibold mb-2">My Account QR</h3>
+          <div className="mt-8 text-center bg-white/10 border border-white/20 p-6 rounded-xl">
+            <h3 className="text-lg font-semibold mb-2">📤 My Account QR</h3>
             <QRCodeCanvas value={qrValue} size={160} />
-            <p className="mt-2 text-sm text-gray-600">
-              Share this QR to receive payments
-            </p>
+            <p className="mt-3 text-sm text-white/60">Share this QR to receive payments</p>
           </div>
         )}
       </div>
 
+      {/* QR Scanner Modal */}
       {showScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">Scan QR</h3>
-            <QrReader
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white text-black p-6 rounded-2xl shadow-xl w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4 text-center">📷 Scan QR</h3>
+            <QrScanner
               delay={300}
               onError={handleError}
               onScan={handleScan}
               style={{ width: "100%" }}
             />
             <button
-              className="mt-4 w-full border py-2 rounded hover:bg-gray-100"
+              className="mt-6 w-full py-3 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 transition"
               onClick={() => setShowScanner(false)}
             >
               Cancel
@@ -276,5 +298,7 @@ export default function TokenTransfer() {
         </div>
       )}
     </div>
-  );
+  </div>
+);
+
 }

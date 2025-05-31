@@ -78,9 +78,9 @@ const Call = ({ callType = "video" }) => { // callType prop determines call mode
     callStartTimeRef.current = Date.now();
 
     // Establish a secure Socket.io connection (replace URL/token as needed)
-    const s = io('https://dummy-signaling-server.com', { query: { token: 'dummy-auth-token' }, secure: true });
-  // for production replace io(process.env.REACT_APP_SIGNALING_URL, { query: { token: process.env.REACT_APP_AUTH_TOKEN }, secure: true });
+    const s =  io(process.env.REACT_APP_SIGNALING_URL, { query: { token: process.env.REACT_APP_AUTH_TOKEN }, secure: true });
 
+  
 
     setSocket(s);
 
@@ -203,58 +203,73 @@ const Call = ({ callType = "video" }) => { // callType prop determines call mode
   };
 
   return (
-    <div className="relative w-full h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
-      {callType === "video" && (
+   <div className="relative w-full h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center justify-center">
+  {callType === "video" && (
+    <video
+      ref={remoteVideoRef}
+      autoPlay
+      playsInline
+      className="absolute inset-0 w-full h-full object-cover opacity-70"
+    />
+  )}
+
+  <div className="relative z-10 flex flex-col items-center space-y-6 backdrop-blur-md p-6 rounded-xl bg-white/10 border border-white/10 shadow-xl">
+    {callType === "video" && (
+      <div className="w-24 h-24 rounded-full overflow-hidden border border-white/30 shadow-lg">
         <video
-          ref={remoteVideoRef}
+          ref={localVideoRef}
           autoPlay
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          muted
+          className="w-full h-full object-cover"
         />
-      )}
-      <div className="relative z-10 flex flex-col items-center space-y-4">
-        {callType === "video" && (
-          <div className="w-24 h-24 rounded-full bg-gray-700 overflow-hidden mb-4">
-            <video
-              ref={localVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
-        <h2 className="text-xl font-semibold">End-to-end encrypted</h2>
-        <div className="flex space-x-4">
-          <button
-            onClick={handleToggleMic}
-            className="bg-gray-800 rounded-full p-4 hover:bg-gray-700 focus:outline-none"
-          >
-            {micEnabled ? <IoMic className="w-6 h-6 text-white" /> : <IoMicOff className="w-6 h-6 text-red-500" />}
-          </button>
-          {callType === "video" && (
-            <button
-              onClick={handleToggleCamera}
-              className="bg-gray-800 rounded-full p-4 hover:bg-gray-700 focus:outline-none"
-            >
-              {cameraEnabled ? <IoVideocam className="w-6 h-6 text-white" /> : <IoVideocamOff className="w-6 h-6 text-red-500" />}
-            </button>
-          )}
-          <button
-            onClick={handleEndCall}
-            className="bg-red-600 rounded-full p-4 hover:bg-red-500 focus:outline-none"
-          >
-            <IoCallEnd className="w-6 h-6 text-white" />
-          </button>
-        </div>
-        <button
-          onClick={startCall}
-          className="mt-4 bg-green-600 px-4 py-2 rounded hover:bg-green-500"
-        >
-          Start {callType === "video" ? "Video" : "Voice"} Call
-        </button>
       </div>
+    )}
+
+    <h2 className="text-lg font-medium text-white/90">🔒 End-to-end encrypted</h2>
+
+    <div className="flex items-center space-x-4">
+      <button
+        onClick={handleToggleMic}
+        className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition"
+      >
+        {micEnabled ? (
+          <IoMic className="text-white w-6 h-6" />
+        ) : (
+          <IoMicOff className="text-red-400 w-6 h-6" />
+        )}
+      </button>
+
+      {callType === "video" && (
+        <button
+          onClick={handleToggleCamera}
+          className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition"
+        >
+          {cameraEnabled ? (
+            <IoVideocam className="text-white w-6 h-6" />
+          ) : (
+            <IoVideocamOff className="text-red-400 w-6 h-6" />
+          )}
+        </button>
+      )}
+
+      <button
+        onClick={handleEndCall}
+        className="p-4 rounded-full bg-red-600 hover:bg-red-500 transition"
+      >
+        <IoCallEnd className="text-white w-6 h-6" />
+      </button>
     </div>
+
+    <button
+      onClick={startCall}
+      className="mt-6 px-6 py-2 bg-green-500 hover:bg-green-400 text-white font-semibold rounded-full transition"
+    >
+      Start {callType === "video" ? "Video" : "Voice"} Call
+    </button>
+  </div>
+</div>
+
   );
 };
 Call.propTypes = {

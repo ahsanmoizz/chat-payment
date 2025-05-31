@@ -1,10 +1,10 @@
 const { ethers } = require("ethers");
 require("dotenv").config();
-const CONTRACT_ABI = require("../../PaymentFrontend/ContractABI.json");
-const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+const CONTRACT_ABI = require("../../PaymentFrontend/AdminABI.json");
+const CONTRACT_ADDRESS = process.env.REACT_APP_ADMIN_ADDRESS;
 
 const provider = new ethers.JsonRpcProvider(process.env.ADMIN_RPC_URL||"https://dummy-admin-rpc.yourdomain.com"); // Infura, Alchemy, etc.
-const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY||"0xDUMMY_ADMIN_PRIVATE_KEY_1234567890abcdef1234567890abcdef";
+const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY;
 const signer = new ethers.Wallet(adminPrivateKey, provider);
 
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);

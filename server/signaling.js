@@ -9,7 +9,7 @@ const server = http.createServer(WebApp.connectHandlers);
 // Initialize Socket.io on the server with secure CORS options.
 const io = socketIO(server, {
   cors: {
-    origin: 'https://your-secure-domain.com', // Replace with your client's origin
+    origin: process.env.CLIENT_ORIGIN||'https://dummy-secure-domain.com', // Replace with your client's origin
     methods: ['GET', 'POST'],
     credentials: true,
   },

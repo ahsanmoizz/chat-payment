@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import React,{ useState, useEffect } from "react";
 import { Web3Auth } from "@web3auth/modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { ethers } from "ethers";
 
-const clientId = "dummy_client_id"; // 🔁 Replace with your actual ID
+const clientId = window.APP_SETTINGS.REACT_APP_WEB3AUTH_CLIENT_ID;
 
 export const useWeb3Auth = () => {
   const [web3auth, setWeb3auth] = useState(null);
@@ -18,7 +18,7 @@ export const useWeb3Auth = () => {
           chainConfig: {
           chainNamespace: "eip155",
     chainId: "0x13881", // Polygon Mumbai
-    rpcTarget: "https://dummy-rpc-url.com",
+     rpcTarget: window.APP_SETTINGS.REACT_APP_WEB3AUTH_RPC,
           },
         });
 

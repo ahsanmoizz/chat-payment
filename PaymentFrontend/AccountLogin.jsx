@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import UserRegistrationABI from "./UserRegistrationABI.json";
@@ -121,87 +121,110 @@ function AccountLogin() {
     }
   };
  
-  
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Login</h2>
+  <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] flex items-center justify-center p-4">
+    <div className="relative w-full max-w-lg p-8 bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl text-white transition-all duration-300 animate-fade-in">
+      {/* Decorative glowing SVG */}
+      <svg className="absolute -top-10 -right-10 w-32 h-32 text-purple-500/30 animate-pulse" fill="none" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" fill="currentColor" />
+      </svg>
+
+      <h2 className="text-3xl font-bold text-center mb-6 tracking-wide">🔐 Secure Wallet Login</h2>
 
       {!address ? (
         <button
           onClick={login}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-3 px-6 rounded-xl font-semibold hover:scale-[1.02] active:scale-[.98] transition-transform shadow-lg"
         >
           Connect with Web3Auth
         </button>
       ) : (
-        <div>
-          <p className="mb-2">🔐 Connected Wallet: {address}</p>
+        <>
+          <div className="mb-6">
+            <p className="text-sm text-green-300 mb-1">Connected Wallet:</p>
+            <p className="font-mono bg-white/10 px-3 py-2 rounded-md text-sm break-all border border-white/20">
+              {address}
+            </p>
+          </div>
 
-          {/* 🔥 Mandatory Face Login */}
           {!useFace ? (
             <button
               onClick={() => setUseFace(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-500 py-3 px-6 rounded-xl font-semibold hover:scale-[1.02] transition-transform shadow-lg mb-4"
             >
               Start Face Verification
             </button>
           ) : (
-            <>
+            <div className="flex flex-col items-center">
               <video
                 ref={videoRef}
                 autoPlay
                 muted
                 width={320}
                 height={240}
-                className="rounded border mb-2"
+                className="rounded-lg border border-white/20 mb-4"
               />
               <button
                 onClick={loginWithFace}
                 disabled={verifying}
-                className="bg-green-600 text-white px-4 py-2 rounded"
+                className={`w-full py-3 px-6 rounded-xl font-semibold shadow-lg transition-all ${
+                  verifying
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-green-400 to-teal-500 hover:scale-[1.02]"
+                }`}
               >
                 {verifying ? "Verifying..." : "Verify Face"}
               </button>
-            </>
+            </div>
           )}
-          
-          <div className="mt-6">
-            <h3 className="font-semibold mb-2">🔑 Backup Manual Login (After Face Verified)</h3>
 
+          {/* Manual Backup Login */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-3">🔑 Backup Manual Login</h3>
             <input
               type="text"
               placeholder="Enter Passphrase or Account Number"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="border px-3 py-2 rounded w-full mb-2"
+              className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all mb-3"
             />
-
             <button
               onClick={loginUser}
               disabled={!faceLoginSuccess}
-              className="bg-gray-700 text-white px-4 py-2 rounded"
+              className={`w-full py-3 px-6 rounded-xl font-semibold shadow-lg transition-transform ${
+                !faceLoginSuccess
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-slate-700 to-black hover:scale-[1.02]"
+              }`}
             >
               Login with Passphrase/Account
             </button>
           </div>
 
-          <button
-            onClick={logout}
-            className="ml-4 mt-4 text-sm text-red-500 underline block"
-          >
-            Logout Wallet
-          </button>
+          {/* Logout + Messages */}
+          {address && localStorage.getItem("userSession") === "true" && (
+  <button
+    onClick={handleLogout}
+    className="mt-6 text-sm text-red-300 underline hover:text-red-100"
+  >
+    🚪 Logout Wallet
+  </button>
+)}
 
-          <p className="mt-3 text-sm text-red-600">{message}</p>
+
+          {message && <p className="mt-4 text-sm text-red-200">{message}</p>}
+
           {failedAttempts >= 3 && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-2 text-sm text-yellow-300 animate-pulse">
               ⚠️ Multiple failed login attempts detected.
             </p>
           )}
-        </div>
+        </>
       )}
     </div>
-  );
+  </div>
+);
+
 }
 
 export default AccountLogin;

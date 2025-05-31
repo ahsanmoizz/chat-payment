@@ -5,11 +5,14 @@ const { ethers } = require("ethers");
 const MultiAssetWalletABI = require("../../PaymentFrontend/ContractABI.json");
 const { sendNonEvmToken } = require("../services/nonEvmTransfer");
 const recordTransaction = require("../utils/recordTransaction");
-
-const provider = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL||`https://dummy-rpc.yourdomain.com`);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY||"0xDUMMY_PRIVATE_KEY_1234567890abcdef1234567890abcdef12345678", provider);
+const { getSetting } = require("../utils/appSettings");
+async function init() {
+const INFURA_URL = await getSetting("INFURA_RPC_URL");
+const PRIVATE_KEY = await getSetting("PRIVATE_KEY");
+const provider = new ethers.JsonRpcProvider(INFURA_URL);
+const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(
-  process.env.MULTI_ASSET_WALLET_ADDRESS|| "0xDUMMY_CONTRACT_ADDRESS_1234567890abcdef1234567890abcdef",
+  process.env.MULTI_ASSET_WALLET_ADDRESS,
   MultiAssetWalletABI,
   wallet
 );
@@ -81,3 +84,6 @@ async function processDelayedTransfers() {
 // Run every 30 sec
 setInterval(processDelayedTransfers, 30 * 1000);
 console.log("⏳ Delayed transfer executor started.");
+}
+
+init(); // Call it

@@ -38,9 +38,9 @@ Meteor.methods({
     try {
       // Use 2factor.in API instead of Twilio.
       // Construct the URL. (Check 2factor.in documentation for the correct format.)
-      const apiKey = Meteor.settings.TWOFACTOR_API_KEY||"dummy_2factor_api_key_123456";
-      // Example URL: https://2factor.in/API/V1/<api_key>/SMS/<phoneNumber>/<otp>
-      const url =  `https://dummy-2factor-api.com/API/V1/${apiKey}/SMS/${phoneNumber}/${otp}`;
+      const apiKey = Meteor.settings.TWOFACTOR_API_KEY;
+      const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phoneNumber}/${otp}`;
+;
       const result = HTTP.call('GET', url);
       if (result.statusCode !== 200) {
         throw new Meteor.Error('2factor-error', 'OTP service returned an error.');

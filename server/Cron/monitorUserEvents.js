@@ -3,7 +3,7 @@ const { ethers } = require("ethers");
 require("dotenv").config();
 const ABI = require("../../PaymentFrontend/UserRegistrationABI.json");
 
-const PROVIDER = new ethers.JsonRpcProvider(`https://dummy-rpc.yourdomain.com`); //rpc url
+const PROVIDER = new ethers.JsonRpcProvider(process.env.INFURA_RPC_URL); //rpc url
 const CONTRACT_ADDRESS = process.env.USER_REGISTRATION_ADDRESS;
 const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
 

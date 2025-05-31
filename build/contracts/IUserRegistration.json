@@ -1,0 +1,329 @@
+{
+  "contractName": "IUserRegistration",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getAccountDetails",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "phoneNumber",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "accountNumber",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "qrCodeData",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "exists",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getAccountDetails\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"email\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"phoneNumber\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"accountNumber\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeData\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"exists\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/IUserRegisteration.sol\":\"IUserRegistration\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/IUserRegisteration.sol\":{\"keccak256\":\"0xc9583aef9bdd859a11efc2c2cdb00b43065be71859769380b862c197e6955952\",\"urls\":[\"bzz-raw://385ae44de2944cb25a57087680c3e9df674c1caafa3180bf7ecf152c7af80463\",\"dweb:/ipfs/QmYX2wmjRbdqHL1p9V6kiZffJBZ2ogrKJo3JAuZf38x9ny\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "interface IUserRegistration {\r\n    function getAccountDetails(address user) external view returns (\r\n        string memory name,\r\n        string memory email,\r\n        string memory phoneNumber,\r\n        string memory accountNumber,\r\n        string memory qrCodeData,\r\n        bool exists\r\n    );\r\n}\r\n",
+  "sourcePath": "C:\\Users\\ECON\\OneDrive\\Desktop\\new react\\whatsapp-clone\\contracts\\IUserRegisteration.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/IUserRegisteration.sol",
+    "exportedSymbols": {
+      "IUserRegistration": [
+        6207
+      ]
+    },
+    "id": 6208,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IUserRegistration",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 6207,
+        "linearizedBaseContracts": [
+          6207
+        ],
+        "name": "IUserRegistration",
+        "nameLocation": "10:17:16",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "2aceb534",
+            "id": 6206,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getAccountDetails",
+            "nameLocation": "44:17:16",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 6192,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6191,
+                  "mutability": "mutable",
+                  "name": "user",
+                  "nameLocation": "70:4:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "62:12:16",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 6190,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "62:7:16",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "61:14:16"
+            },
+            "returnParameters": {
+              "id": 6205,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6194,
+                  "mutability": "mutable",
+                  "name": "name",
+                  "nameLocation": "123:4:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "109:18:16",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 6193,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "109:6:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 6196,
+                  "mutability": "mutable",
+                  "name": "email",
+                  "nameLocation": "152:5:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "138:19:16",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 6195,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "138:6:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 6198,
+                  "mutability": "mutable",
+                  "name": "phoneNumber",
+                  "nameLocation": "182:11:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "168:25:16",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 6197,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "168:6:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 6200,
+                  "mutability": "mutable",
+                  "name": "accountNumber",
+                  "nameLocation": "218:13:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "204:27:16",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 6199,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "204:6:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 6202,
+                  "mutability": "mutable",
+                  "name": "qrCodeData",
+                  "nameLocation": "256:10:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "242:24:16",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 6201,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "242:6:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 6204,
+                  "mutability": "mutable",
+                  "name": "exists",
+                  "nameLocation": "282:6:16",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6206,
+                  "src": "277:11:16",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 6203,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "277:4:16",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "98:197:16"
+            },
+            "scope": 6207,
+            "src": "35:261:16",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 6208,
+        "src": "0:299:16",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "0:301:16"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2025-05-21T07:48:14.023Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

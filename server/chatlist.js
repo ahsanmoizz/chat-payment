@@ -39,7 +39,7 @@ app.use(express.json());
 // Middleware: Configure CORS using an environment variable.
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['https://dummy-production-domain.com'];
+  : [process.env.REACT_APP_API_URL];
 
 app.use(
   cors({

@@ -106,6 +106,10 @@ uint256 public nextScheduledId;
     }
 
 
+function setRegistrationContract(address _registration) external onlyOwner {
+    require(_registration != address(0), "Invalid address");
+    registration = IUserRegistration(_registration);
+}
 
      
    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {

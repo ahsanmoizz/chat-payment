@@ -31,7 +31,7 @@ router.get('/allUsers', checkSuperAdmin, async (req, res) => {
 });
 
 // Endpoint: Block or unblock a user
-router.post('/blockUser', checkSuperAdmin, async (req, res) => {
+router.post(`/blockUser`, checkSuperAdmin, async (req, res) => {
   const { userId, block } = req.body;
   try {
     await pool.query('UPDATE users SET blocked = $1 WHERE id = $2', [block, userId]);
@@ -43,7 +43,7 @@ router.post('/blockUser', checkSuperAdmin, async (req, res) => {
 });
 
 // Endpoint: Change user role
-router.post('/assignRole', checkSuperAdmin, async (req, res) => {
+router.post(`/assignRole`, checkSuperAdmin, async (req, res) => {
   const { email, role } = req.body;
   try {
     // Check if user exists
@@ -78,7 +78,7 @@ function checkAppStatus(req, res, next) {
 // (Make sure you use checkAppStatus in your main Express app if desired.)
 
 // Endpoint: Toggle entire app’s operational status
-router.post('/toggleApp', checkSuperAdmin, (req, res) => {
+router.post(`/toggleApp`, checkSuperAdmin, (req, res) => {
   appDisabled = req.body.disable;
   res.json({ message: `App has been ${appDisabled ? 'disabled' : 'enabled'}` });
 });

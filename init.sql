@@ -96,3 +96,7 @@ CREATE TABLE IF NOT EXISTS user_delayed_transfers (
 );
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);

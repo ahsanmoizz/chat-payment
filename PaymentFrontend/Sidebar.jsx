@@ -23,31 +23,36 @@ const Sidebar = () => {
     localStorage.clear();
     navigate("/login");
   };
+return (
+  <div className="bg-white/5 backdrop-blur-xl text-white w-64 min-h-screen p-6 border-r border-white/10 shadow-xl relative animate-fade-in">
+    {/* Glowing SVG decoration */}
+    <svg className="absolute -top-6 -left-6 w-24 h-24 text-indigo-500/20 animate-pulse" fill="none" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="80" fill="currentColor" />
+    </svg>
 
-  return (
-    <div className="bg-gray-800 text-white w-64 min-h-screen p-4">
-      <h2 className="text-xl font-bold mb-6">Wallet Menu</h2>
-      <ul className="space-y-3">
+    <h2 className="text-2xl font-extrabold mb-8 tracking-wide text-white/90">⚙️ Wallet Menu</h2>
+
+    <ul className="space-y-3">
       {navItems.map((item) => (
-  <button
-    key={item.path}
-    onClick={() => navigate(item.path)}
-    className="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded text-left w-full"
-  >
-    {item.label}
-  </button>
-))}
+        <button
+          key={item.path}
+          onClick={() => navigate(item.path)}
+          className="w-full text-left px-4 py-2 rounded-lg bg-white/5 hover:bg-gradient-to-r from-indigo-500 to-purple-500 hover:text-white transition-all shadow-sm hover:shadow-md"
+        >
+          {item.label}
+        </button>
+      ))}
 
       <button
-  onClick={handleLogout}
-  className="cursor-pointer text-red-400 hover:text-white hover:bg-red-500 px-3 py-2 rounded mt-4 w-full text-left"
->
-  Logout
-</button>
+        onClick={handleLogout}
+        className="mt-6 w-full text-left px-4 py-2 rounded-lg text-red-300 hover:text-white hover:bg-red-600 transition-all shadow-sm"
+      >
+        🚪 Logout
+      </button>
+    </ul>
+  </div>
+);
 
-      </ul>
-    </div>
-  );
 };
 
 export default Sidebar;

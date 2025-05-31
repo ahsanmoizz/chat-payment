@@ -1,8 +1,8 @@
-import  { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
-const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com';
-const FALLBACK_AVATAR = process.env.REACT_APP_FALLBACK_AVATAR || 'https://via.placeholder.com/40';
+const API_URL = process.env.REACT_APP_API_URL ;
+const FALLBACK_AVATAR = process.env.REACT_APP_FALLBACK_AVATAR ;
 
 const NewChatModal = ({ onClose, onSelectChat }) => {
   const [ setContacts] = useState([]);
@@ -29,11 +29,11 @@ const NewChatModal = ({ onClose, onSelectChat }) => {
 
       // Check which contacts are registered.
       const phoneNumbers = deviceContacts.map((c) => c.phoneNumber);
-      const token = localStorage.getItem('userToken');
+      const token = localStorage.getItem('userToken'); //user token
       const response = await axios.post(
         `${API_URL}/api/checkContacts`,
         { phoneNumbers },
-        { headers: {Authorization: `Bearer dummy_token`
+        { headers: {Authorization: `Bearer ${token}`  //user token
  } }
       );
       setRegisteredContacts(response.data);
@@ -57,42 +57,46 @@ const NewChatModal = ({ onClose, onSelectChat }) => {
     }
     onClose();
   };
+return (
+  <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] w-full max-w-md p-6 rounded-2xl shadow-2xl relative text-white">
+      <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-red-400 transition">
+        ✕
+      </button>
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-xl relative">
-        {/* Close Button */}
-        {loading ? (
-  <p className="text-center text-gray-500">Loading contacts...</p>
-) : (
-  <div className="max-h-64 overflow-y-auto">
-    {registeredContacts.length === 0 ? (
-      <p className="text-center text-gray-500">No registered contacts found.</p>
-    ) : (
-      registeredContacts.map((user) => (
-        <button
-          key={user.userId}
-          className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-transform transform hover:scale-105 text-left w-full"
-          onClick={() => handleSelectContact(user)}
-        >
-          {/* User Avatar */}
-          <img
-            src={user.profile_image || FALLBACK_AVATAR}
-            alt={user.name}
-            className="w-12 h-12 rounded-full border border-gray-300 mr-4"
-          />
-          <div>
-            <p className="font-medium text-gray-800">{user.name}</p>
-            <p className="text-sm text-gray-500">{user.phone}</p>
-          </div>
-        </button>
-      ))
-    )}
-  </div>
-)}
-      </div>
+      <h2 className="text-xl font-bold mb-4">Start New Chat</h2>
+
+      {loading ? (
+        <p className="text-center text-white/70">Loading contacts...</p>
+      ) : (
+        <div className="max-h-64 overflow-y-auto space-y-3">
+          {registeredContacts.length === 0 ? (
+            <p className="text-center text-white/60">No registered contacts found.</p>
+          ) : (
+            registeredContacts.map((user) => (
+              <button
+                key={user.userId}
+                className="flex items-center p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all w-full text-left shadow"
+                onClick={() => handleSelectContact(user)}
+              >
+                <img
+                  src={user.profile_image || FALLBACK_AVATAR}
+                  alt={user.name}
+                  className="w-12 h-12 rounded-full border border-white/20 mr-4"
+                />
+                <div>
+                  <p className="font-semibold text-white">{user.name}</p>
+                  <p className="text-sm text-white/60">{user.phone}</p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
+
 };
 NewChatModal.propTypes = {
   onClose: PropTypes.func.isRequired,

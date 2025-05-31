@@ -18,8 +18,7 @@ router.post("/confirm", async (req, res) => {
     if (planRes.rowCount === 0) {
       return res.status(400).json({ error: "Invalid plan" });
     }
-
-    const { duration } = planRes.rows[0];
+;
 
     // Update user's subscription
     await db.query(
@@ -28,6 +27,7 @@ router.post("/confirm", async (req, res) => {
     );
 
     // Log payment
+    const { duration } = planRes.rows[0]
     await db.query(
       `INSERT INTO user_payments (user_id, plan_key, amount, provider, currency_used, country)
        VALUES ($1, $2, $3, $4, $5, $6)`,

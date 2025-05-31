@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Communication App Components
-import LoginRegisterPage from "./components/auth pages/LoginRegisterpage";
-import WhatsAppLayout from "./components/whatsapplayout";
-import SubscriptionPage from "./components/SubscriptionPage";
+import LoginRegisterPage from "./auth-pages/LoginRegisterpage";
+import WhatsAppLayout from "./whatsapplayout";
+import SubscriptionPage from "./subscriptionPage";
 
 // Payment App Components
 import Register from "../../PaymentFrontend/AccountRegister";
@@ -13,7 +13,7 @@ import Dashboard from "../../PaymentFrontend/Dahboard";
 import Deposit from "../../PaymentFrontend/Deposit";
 import Withdraw from "../../PaymentFrontend/Withdraw";
 import TokenTransfer from "../../PaymentFrontend/TokenTransfer";
-import Receive from "../../PaymentFrontend/Receive";
+import Receive from "../../PaymentFrontend/Deposit";
 import MultiSig from "../../PaymentFrontend/Multisig";
 import Escrow from "../../PaymentFrontend/Escrow";
 import Sidebar from "../../PaymentFrontend/Sidebar";
@@ -22,7 +22,7 @@ import TransferQueue from "../../PaymentFrontend/TransferQueue";
 // ✅ App Component
 const App = () => {
   // Communication auth state
-  const [commAuthenticated] = useState(!!localStorage.getItem("userToken") || process.env.REACT_APP_USER_TOKEN === "dummy_user_token");
+  const [commAuthenticated] = useState(!!localStorage.getItem("userToken") || process.env.REACT_APP_USER_TOKEN);
   // Payment auth state
   const [payAuthenticated, setPayAuthenticated] = useState(false);
   const [userType, setUserType] = useState(null);

@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
+import React ,{ useEffect, useState } from "react";
 import axios from "axios";
 
 export default function SubscriptionPage() {
   const [plans, setPlans] = useState([]);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showConfirm, setShowConfirm] = useState(false); // ✅ Define this at top level
+  const [selectedPlan, setSelectedPlan] = useState(null);l
   const [currency, setCurrency] = useState("USD");
   const [userCountry, setUserCountry] = useState("US");
-
+ const API_URL = process.env.REACT_APP_API_URL ;
 
   useEffect(() => {
     const fetchPlans = async () => {
-      const res = await axios.get("https://dummy-api.com/api/admin/subscription-plans");
-      setPlans(res.data);
+      const res = await axios.get(`${API_URL}/api/admin/subscription-plans`);
+      setPlans(res.data); 
     };
     fetchPlans();
   }, []);
  useEffect(() => {
     const checkExpiry = async () => {
-        const userId = Meteor.userId() || localStorage.getItem("user_id");
+      const userId = Meteor.userId() || localStorage.getItem("userId") || process.env.REACT_APP_USER_ID;
+
         if (!userId) return;
         
-        const res = await axios.get(`https://dummy-api.com/api/subscription-check/${userId}`);
+        const res = await axios.get(`${API_URL}/api/subscription-check/${userId}`);
     
         if (res.data.expired) {
             alert("Your subscription expired. Please renew to continue using features.");
@@ -52,125 +52,77 @@ export default function SubscriptionPage() {
   const handlePayment = async (provider) => {
     if (!selectedPlan) return alert("Select a plan");
     const displayPrice = selectedPlan.country_prices?.[userCountry] || selectedPlan.price_usd;
-    const userId = localStorage.getItem("user_id");
+    const userId = localStorage.getItem("userId");
 
-    // 🌐 Open provider popup
-    if (provider === "moonpay") {
-      window.open(
-        `https://dummy-moonpay.com?apiKey=dummy_moonpay_key&currencyCode=usdt&walletAddress=${userId}&baseCurrencyAmount=${displayPrice}`,
-        "_blank"
-      );
-    } else if (provider === "transak") {
-      window.open(
-        `https://dummy-transak.com?apiKey=dummy_transak_key&cryptoCurrency=USDT&network=ethereum&defaultCryptoAmount=${displayPrice}&disableWalletAddressForm=true&walletAddress=${userId}`,
-        "_blank"
-      );
-      setShowConfirm(true); // ✅ Show manual confirm
-      return; // 🧠 Skip auto-confirm for Transak
-    }
+   if (provider === "onmeta") {
+  window.open(
+    `${process.env.REACT_APP_ONMETA_URL}?apiKey=${process.env.REACT_APP_ONMETA_API_KEY}&walletAddress=${process.env.REACT_APP_ADMIN_WALLET}&cryptoCurrency=USDT&fiatAmount=${displayPrice}&network=ethereum`,
+    "_blank"
+  );
+}  else if (provider === "coinbase") {
+  window.open(
+    `${process.env.REACT_APP_COINBASE_CHECKOUT_URL}?customer_wallet=${process.env.REACT_APP_ADMIN_WALLET}&metadata[userId]=${userId}`,
+    "_blank"
+  );
 
-    // ✅ Auto-confirm only for MoonPay (if desired)
-    try {
-      await axios.post("https://dummy-api.com/api/subscription/confirm", {
-        userId,
-        planKey: selectedPlan.plan_key,
-        amount: displayPrice,
-        provider,
-        country: userCountry,
-        currencyUsed: currency
-      });
+  
+  return;
 
-      alert("✅ Subscription confirmed!");
-    } catch (err) {
-      console.error("Subscription confirmation failed:", err);
-      alert("❌ Could not confirm subscription. Please contact support.");
-    }
-  };
 
-  // ✅ Manual confirmation handler (after Transak payment)
-  const handleConfirm = async () => {
-    const userId = localStorage.getItem("user_id");
-    const displayPrice = selectedPlan?.country_prices?.[userCountry] || selectedPlan?.price_usd;
+}
 
-    try {
-      await axios.post("http://localhost:5000/api/subscription/confirm", {
-        userId,
-        planKey: selectedPlan.plan_key,
-        amount: displayPrice,
-        provider: "manual",
-        country: userCountry,
-        currencyUsed: currency
-      });
-
-      alert("✅ Subscription confirmed!");
-      setShowConfirm(false);
-    } catch (err) {
-      console.error("Confirmation error:", err);
-      alert("❌ Could not confirm. Contact support.");
-    }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Choose a Subscription Plan</h2>
+  <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-8 flex flex-col items-center justify-start font-sans">
+    <div className="w-full max-w-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8 space-y-8 animate-fade-in">
 
-   {/* Subscription Plans */}
-{plans.map((plan) => (
-  <button
-    key={plan.plan_key}
-    className={`border p-4 rounded mb-4 w-full text-left cursor-pointer transition-all ${
-      selectedPlan?.plan_key === plan.plan_key ? "border-blue-500 bg-blue-50" : ""
-    }`}
-    onClick={() => setSelectedPlan(plan)}
-    role="button"
-    tabIndex="0"
-  >
-    {/* Plan Name */}
-    <h3 className="font-bold text-lg">{plan.name}</h3>
+      <h2 className="text-3xl font-bold text-center mb-4 tracking-wide">💼 Choose a Subscription Plan</h2>
 
-    {/* Messages and Transactions */}
-    <p className="text-sm text-gray-600">Messages: {plan.max_messages}</p>
-    <p className="text-sm text-gray-600">Transactions: {plan.max_transactions}</p>
+      {/* Plans */}
+      {plans.map((plan) => (
+        <button
+          key={plan.plan_key}
+          onClick={() => setSelectedPlan(plan)}
+          className={`w-full text-left p-4 rounded-xl transition-all border ${
+            selectedPlan?.plan_key === plan.plan_key
+              ? "bg-white/10 border-pink-500 ring-2 ring-pink-400"
+              : "border-white/10 hover:bg-white/5"
+          }`}
+        >
+          <h3 className="text-xl font-bold">{plan.name}</h3>
+          <p className="text-sm text-white/70">📨 Messages: {plan.max_messages}</p>
+          <p className="text-sm text-white/70">💸 Transactions: {plan.max_transactions}</p>
+          <p className="text-md font-semibold mt-2 text-pink-400">
+            {plan.country_prices?.[userCountry]
+              ? `${plan.country_prices[userCountry]} ${currency}`
+              : `$${plan.price_usd}`}
+          </p>
+        </button>
+      ))}
 
-    {/* Pricing */}
-    <p className="text-sm mt-1 font-medium">
-      {plan.country_prices?.[userCountry]
-        ? `${plan.country_prices[userCountry]} ${currency}`
-        : `$${plan.price_usd}`}
-    </p>
-  </button>
-))}
-
-
+      {/* Payment Buttons */}
       {selectedPlan && (
         <div className="flex space-x-4 mt-4">
           <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
-            onClick={() => handlePayment("transak")}
-          >
-            Pay with Transak
-          </button>
+  onClick={() => handlePayment("coinbase")}
+  className="flex-1 py-3 px-4 rounded-xl font-semibold shadow-lg bg-gradient-to-r from-green-400 to-teal-500 hover:scale-[1.02] transition-transform"
+>
+   Pay with coinbase
+</button>
+         <button
+  onClick={() => handlePayment("onmeta")}
+  className="flex-1 py-3 px-4 rounded-xl font-semibold shadow-lg bg-gradient-to-r from-green-400 to-teal-500 hover:scale-[1.02] transition-transform"
+>
+  🪙 Pay with Onmeta
+</button>
 
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded"
-            onClick={() => handlePayment("moonpay")}
-          >
-            Pay with MoonPay
-          </button>
         </div>
       )}
 
-      {/* ✅ Manual confirmation button for Transak */}
-      {showConfirm && (
-        <div className="mt-4">
-          <button
-            onClick={handleConfirm}
-            className="bg-purple-600 text-white px-4 py-2 rounded"
-          >
-            ✅ Confirm Payment Done
-          </button>
-        </div>
-      )}
+    
     </div>
-  );
+  </div>
+);
+
 }

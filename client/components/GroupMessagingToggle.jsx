@@ -9,11 +9,11 @@ const GroupMessagingToggle = ({ groupId, currentMode, userToken, onModeChange })
   const toggleMode = async () => {
     setLoading(true);
     try {
-      const token = userToken || localStorage.getItem("userToken");
+      const token =  localStorage.getItem("userToken");//usertoken 
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || "https://dummy-api.com"}/api/groups/toggleMessaging`,
+        `${process.env.REACT_APP_API_URL }/api/groups/toggleMessaging`,
         { groupId, onlyAdminCanMessage: !onlyAdminCanMessage },
-        { headers: {Authorization: `Bearer dummy_token` } }
+        { headers: {Authorization: `${token}` } }
       );
       setOnlyAdminCanMessage(response.data.onlyAdminCanMessage);
       if (onModeChange) onModeChange(response.data.onlyAdminCanMessage);
@@ -24,19 +24,23 @@ const GroupMessagingToggle = ({ groupId, currentMode, userToken, onModeChange })
       setLoading(false);
     }
   };
+return (
+  <div className="flex items-center justify-between bg-white/10 backdrop-blur-lg px-4 py-2 rounded-lg shadow-inner text-white w-full">
+    <span className="font-medium">Only admins can send messages:</span>
+    <button
+      onClick={toggleMode}
+      disabled={loading}
+      className={`px-4 py-1 rounded-full transition text-sm font-semibold shadow ${
+        onlyAdminCanMessage
+          ? "bg-green-500 hover:bg-green-600"
+          : "bg-red-500 hover:bg-red-600"
+      }`}
+    >
+      {onlyAdminCanMessage ? "Yes" : "No"}
+    </button>
+  </div>
+);
 
-  return (
-    <div className="flex items-center gap-3">
-      <span className="font-medium">Only admins can send messages:</span>
-      <button
-        onClick={toggleMode}
-        disabled={loading}
-        className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition"
-      >
-        {onlyAdminCanMessage ? "Yes" : "No"}
-      </button>
-    </div>
-  );
 };
 
 GroupMessagingToggle.propTypes = {

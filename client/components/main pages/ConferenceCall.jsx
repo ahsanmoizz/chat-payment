@@ -1,4 +1,4 @@
-import  { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { IoCallEnd, IoMic, IoMicOff, IoVideocam, IoVideocamOff } from 'react-icons/io5';
 import { addCallLog } from './callmanager'; // Adjust the path as needed
@@ -106,7 +106,7 @@ if (participantIds.length > 2) {
       id: uuidv4(),
       timestamp: new Date().toISOString(),
       roomId,                      // Actual room ID from props
-      groupName: chat?.group_name || roomId,  // Use real group name if available
+      groupName: chat?.group_name ,  // Use real group name if available
       participants: participantIds, // Array of participant IDs
       callType: finalCallType,      // Determined dynamically
       duration: durationSeconds,    // Calculated duration in seconds
@@ -178,8 +178,8 @@ const handleSDPMessage = async (pc, sdp, s, from) => {
 useEffect(() => {
   // Record call start time
   callStartTimeRef.current = Date.now();
-  const signalingServer = process.env.REACT_APP_SIGNALING_SERVER_URL || 'https://dummy-signaling-server.com';
-  const s = io(signalingServer, { query: { token: 'dummy-auth-token', room: roomId }, secure: true });
+  const signalingServer = process.env.REACT_APP_CONF_SIGNALING_URL; ;
+  const s = io(signalingServer, { query: {  token: process.env.REACT_APP_AUTH_TOKEN , room: roomId }, secure: true });
   setSocket(s);
 
   // Get local media and set up socket events
@@ -251,52 +251,56 @@ const toggleCamera = () => {
   });
 };
 
-  return (
-    <div className="w-full h-screen bg-gray-900 text-white flex flex-col">
-      {/* Video Grid: Remote streams and Local Preview */}
-      <div className="flex flex-wrap flex-grow p-4 overflow-auto">
-        {remoteStreams.map((rs) => (
-          <video
-            key={rs.id}
-            autoPlay
-            playsInline
-            className="w-1/3 h-1/3 m-1 object-cover"
-            ref={(el) => {
-              if (el && rs.stream) {
-                el.srcObject = rs.stream;
-              }
-            }}
-          />
-        ))}
-        <div className="w-1/3 m-1">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-      {/* Controls */}
-      <div className="p-4 border-t flex justify-around">
-        <button onClick={toggleMic} className="bg-gray-800 p-3 rounded-full">
-          {micEnabled ? <IoMic className="w-6 h-6" /> : <IoMicOff className="w-6 h-6" />}
-        </button>
-        <button onClick={toggleCamera} className="bg-gray-800 p-3 rounded-full">
-          {cameraEnabled ? <IoVideocam className="w-6 h-6" /> : <IoVideocamOff className="w-6 h-6" />}
-        </button>
-        <button onClick={handleEndCallWrapper} className="bg-red-600 p-3 rounded-full">
-          <IoCallEnd className="w-6 h-6 text-white" />
-        </button>
-      </div>
-      <button
-        onClick={() => console.log('Start call triggered')}
-        className="mt-4 bg-green-600 px-4 py-2 rounded hover:bg-green-500"
-      >
-        Start {callType === "video" ? "Video" : "Voice"} Call
-      </button>
+  return (<div className="w-full h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col">
+  {/* 📺 Video Grid */}
+  <div className="flex flex-wrap flex-grow p-4 gap-2 overflow-auto backdrop-blur-sm">
+    {remoteStreams.map((rs) => (
+      <video
+        key={rs.id}
+        autoPlay
+        playsInline
+        className="w-1/3 h-1/3 rounded-xl border border-white/10 shadow-md object-cover"
+        ref={(el) => {
+          if (el && rs.stream) {
+            el.srcObject = rs.stream;
+          }
+        }}
+      />
+    ))}
+    <div className="w-1/3 h-1/3 rounded-xl overflow-hidden border border-white/10 shadow-md">
+      <video
+        ref={localVideoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full h-full object-cover"
+      />
     </div>
+  </div>
+
+  {/* 🎛️ Controls */}
+  <div className="p-4 border-t border-white/10 bg-white/5 flex justify-around items-center">
+    <button onClick={toggleMic} className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition">
+      {micEnabled ? <IoMic className="w-6 h-6 text-white" /> : <IoMicOff className="w-6 h-6 text-red-400" />}
+    </button>
+    <button onClick={toggleCamera} className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition">
+      {cameraEnabled ? <IoVideocam className="w-6 h-6 text-white" /> : <IoVideocamOff className="w-6 h-6 text-red-400" />}
+    </button>
+    <button onClick={handleEndCallWrapper} className="p-4 rounded-full bg-red-600 hover:bg-red-500 transition">
+      <IoCallEnd className="w-6 h-6 text-white" />
+    </button>
+  </div>
+
+  <div className="p-4 text-center">
+    <button
+      onClick={() => console.log('Start call triggered')}
+      className="px-6 py-2 bg-green-500 hover:bg-green-400 rounded-full font-semibold transition"
+    >
+      Start {callType === "video" ? "Video" : "Voice"} Call
+    </button>
+  </div>
+</div>
+
   );
 };
 ConferenceCall.propTypes = {

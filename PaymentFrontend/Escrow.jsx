@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React ,{ useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
 import ContractABI from "./ContractABI.json"; // Replace with your actual ABI file
@@ -80,57 +80,64 @@ export default function Escrow() {
       alert("Failed to complete escrow");
     }
   };
+return (
+  <div className="min-h-screen bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364] p-8 text-white flex justify-center items-start">
+    <div className="w-full max-w-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8 animate-fade-in">
+      
+      <h2 className="text-3xl font-bold tracking-wide text-center mb-6">🛡️ Escrow Management</h2>
 
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">Escrow Management</h2>
-
-      <div className="mt-4">
+      {/* Create Escrow */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
           placeholder="Seller Address"
           value={seller}
           onChange={(e) => setSeller(e.target.value)}
-          className="border p-2 mr-2 rounded"
+          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <input
           type="number"
           placeholder="Amount (ETH)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="border p-2 mr-2 rounded"
+          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
         <button
           onClick={createEscrow}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 rounded-xl font-semibold shadow-lg hover:scale-[1.02] transition-transform"
         >
           Create Escrow
         </button>
       </div>
 
-      <h3 className="text-xl font-bold mt-6">Active Escrows</h3>
+      {/* Escrow List */}
+      <h3 className="text-2xl font-semibold mt-8 mb-4">📄 Active Escrows</h3>
+
       {escrows.length > 0 ? (
-        <ul>
+        <ul className="space-y-4">
           {escrows.map((escrow) => (
-            <li key={escrow.id} className="border p-4 mt-2 rounded">
-              <p><strong>Buyer:</strong> {escrow.buyer}</p>
-              <p><strong>Seller:</strong> {escrow.seller}</p>
-              <p><strong>Amount:</strong> {escrow.amount} ETH</p>
-              <p><strong>Status:</strong> {escrow.completed ? "Completed ✅" : "Pending ⏳"}</p>
+            <li key={escrow.id} className="bg-white/10 border border-white/20 p-6 rounded-xl shadow-md">
+              <p><strong className="text-pink-300">Buyer:</strong> {escrow.buyer}</p>
+              <p><strong className="text-green-300">Seller:</strong> {escrow.seller}</p>
+              <p><strong className="text-yellow-300">Amount:</strong> {escrow.amount} ETH</p>
+              <p><strong className="text-white/80">Status:</strong> {escrow.completed ? "✅ Completed" : "⏳ Pending"}</p>
+
               {!escrow.completed && (
                 <button
                   onClick={() => completeEscrow(escrow.id)}
-                  className="bg-green-500 text-white px-4 py-2 mt-2 rounded"
+                  className="mt-4 bg-gradient-to-r from-green-400 to-teal-500 px-6 py-2 rounded-lg font-semibold hover:scale-[1.02] transition-transform"
                 >
-                  Complete Escrow
+                  ✅ Complete Escrow
                 </button>
               )}
             </li>
           ))}
         </ul>
       ) : (
-        <p>No escrows available.</p>
+        <p className="text-white/60 mt-4">🚫 No escrows available.</p>
       )}
     </div>
-  );
+  </div>
+);
+
 }

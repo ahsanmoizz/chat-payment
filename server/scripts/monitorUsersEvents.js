@@ -3,10 +3,13 @@ const fs = require("fs");
 const path = require("path");
 
 require("dotenv").config();
-
+const { getSetting } = require("../utils/appSettings");
 const ABI = require("../../PaymentFrontend/UserRegisterationABI.json");
-const CONTRACT_ADDRESS = process.env.USER_REGISTRATION_ADDRESS||"0xDUMMY_USER_REGISTRATION_ADDRESS_1234567890abcdef";
-const PROVIDER = new ethers.JsonRpcProvider(process.env.ADMIN_RPC_URL||"https://dummy-admin-rpc.yourdomain.com");
+const ADMIN_RPC = await getSetting("ADMIN_RPC_URL");
+
+const CONTRACT_ADDRESS = process.env.USER_REGISTRATION_ADDRESS;
+const PROVIDER = new ethers.JsonRpcProvider(ADMIN_RPC
+); // Replace with your actual RPC URL
 const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, PROVIDER);
 
 async function fetchAllUsersFromEvents() {

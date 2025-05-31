@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import localforage from 'localforage';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,9 +11,9 @@ import GroupSettings from './GroupSettings';
 import PropTypes from 'prop-types';
 
 // Use environment variables for API URL and fallback images.
-const API_URL = process.env.REACT_APP_API_URL || 'https://dummy-api.com/api/chats';
-const DEFAULT_PROFILE_IMAGE = process.env.REACT_APP_DEFAULT_PROFILE_IMAGE || '/images/default_profile.png';
-const DEFAULT_GROUP_ICON = process.env.REACT_APP_DEFAULT_GROUP_ICON || '/images/default_group.png';
+const API_URL = process.env.REACT_APP_API_URL ;
+const DEFAULT_PROFILE_IMAGE = process.env.REACT_APP_DEFAULT_PROFILE_IMAGE ;
+const DEFAULT_GROUP_ICON = process.env.REACT_APP_DEFAULT_GROUP_ICON ;
 
 export default function ChatWindow({ chat, userId }) {
   // Determine if this is a group chat and permissions for sending messages.
@@ -102,10 +102,10 @@ const [isGroupSettingsOpen, setIsGroupSettingsOpen] = useState(false);
         .catch((error) => console.error('Error loading messages:', error))
         .finally(() => setLoading(false));
 
-      const token = localStorage.getItem('userToken');
+      const token = localStorage.getItem('user_token');
       axios
         .get(API_URL, {
-          headers: {  Authorization: `Bearer ${process.env.REACT_APP_USER_TOKEN || 'dummy_user_token'}` },
+          headers: {  Authorization: `Bearer ${process.env.REACT_APP_USER_TOKEN }` || token },
           params: { userId, chat_partner: chat.chat_partner },
         })
         .catch((error) => console.error('Error fetching messages:', error));
@@ -118,7 +118,7 @@ const [isGroupSettingsOpen, setIsGroupSettingsOpen] = useState(false);
 useEffect(() => {
   const fetchChatDetails = async () => {
     try {
-         const response = await fetch(process.env.REACT_APP_CHAT_API_URL || 'https://dummy-api.com/api/chats/' + chat.id);
+         const response = await fetch(process.env.REACT_APP_CHAT_API_URL  + chat.id);
       const data = await response.json();
       if (typeof setChat === 'function') {
         setChat((prevChat) => ({ ...prevChat, isOnline: data.isOnline }));
@@ -261,7 +261,7 @@ const newMessage = {
     id: uuidv4(),
     text: sanitizedText,
     timestamp: new Date(),
-        userId: process.env.REACT_APP_USER_ID || 'dummy_user_id',
+        userId: process.env.REACT_APP_USER_ID ,
     attachment: attachmentData,
     type: messageType,
     conversationId: chat.id,
@@ -279,9 +279,9 @@ const newMessage = {
         setAudioData(null);
 
         // Send to server (if needed)
-        const token = process.env.REACT_APP_USER_TOKEN || localStorage.getItem('userToken') || 'dummy_user_token';
+        const token = process.env.REACT_APP_USER_TOKEN ;
         await axios.post(
-               process.env.REACT_APP_CHAT_API_URL || 'https://dummy-api.com/api/chats',
+               process.env.REACT_APP_CHAT_API_URL ,
             { 
                 userId: newMessage.userId,
                 chat_partner: chat.chat_partner, 
@@ -464,346 +464,184 @@ const newMessage = {
       </div>
     );
   }
-
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Multi-select Header Overlay */}
-      {isSelectionMode && (
-        <div className="absolute top-0 left-0 right-0 bg-gray-200 p-2 z-10 flex items-center justify-between shadow-md rounded-b-lg">
-          <span className="font-semibold text-gray-800">{selectedMessages.length} selected</span>
-          <div className="flex space-x-2">
-            <button onClick={handleCopySelected} className="bg-blue-500 text-white px-4 py-1 rounded shadow hover:bg-blue-600 transition duration-200">
-              Copy
-            </button>
-            <button onClick={handleForwardSelected} className="bg-green-500 text-white px-4 py-1 rounded shadow hover:bg-green-600 transition duration-200">
-              Forward
-            </button>
-            <button onClick={handleDeleteSelected} className="bg-red-500 text-white px-4 py-1 rounded shadow hover:bg-red-600 transition duration-200">
-              Delete
-            </button>
-            <button onClick={cancelSelection} className="bg-gray-500 text-white px-4 py-1 rounded shadow hover:bg-gray-600 transition duration-200">
-              Cancel
-            </button>
-          </div>
+  <div className="flex flex-col h-full bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white relative font-sans">
+    {/* Multi-select Header */}
+    {isSelectionMode && (
+      <div className="absolute top-0 left-0 right-0 bg-white/10 backdrop-blur-md p-2 z-10 flex items-center justify-between shadow rounded-b-lg">
+        <span className="font-semibold text-white">{selectedMessages.length} selected</span>
+        <div className="flex space-x-2">
+          <button onClick={handleCopySelected} className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600 shadow">Copy</button>
+          <button onClick={handleForwardSelected} className="bg-green-500 px-3 py-1 rounded hover:bg-green-600 shadow">Forward</button>
+          <button onClick={handleDeleteSelected} className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 shadow">Delete</button>
+          <button onClick={cancelSelection} className="bg-gray-500 px-3 py-1 rounded hover:bg-gray-600 shadow">Cancel</button>
         </div>
-      )}
-      {/* Chat Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-100">
+      </div>
+    )}
+
+    {/* Header */}
+    <div className="flex items-center justify-between px-4 py-3 bg-white/10 backdrop-blur-sm shadow border-b border-white/10">
+      <div className="flex items-center space-x-3">
+        <img
+          src={isGroupChat ? chat.group_icon || DEFAULT_GROUP_ICON : chat.profile_image || DEFAULT_PROFILE_IMAGE}
+          alt="chat partner"
+          className="w-10 h-10 rounded-full border-2 border-white"
+        />
         <div className="flex items-center space-x-2">
-          {isGroupChat ? (
-            <>
-              <img
-                src={chat.group_icon || DEFAULT_GROUP_ICON}
-                alt={chat.group_name}
-                className="w-8 h-8 rounded-full"
-              />
-              <span className="font-semibold">{chat.group_name}</span>
-            </>
+          <span className="font-bold text-white">{isGroupChat ? chat.group_name : chat.chat_partner}</span>
+          <span className={`w-2 h-2 rounded-full ${chat.isOnline ? "bg-green-400" : "bg-gray-500"}`}></span>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        {isGroupChat && isAdmin && (
+          <button onClick={() => setIsGroupSettingsOpen(true)} className="text-sm px-3 py-1 rounded border border-white/20 hover:bg-white/10 transition">
+            Group Settings
+          </button>
+        )}
+        {isGroupChat ? (
+          <button onClick={openGroupCall} className="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600">Group Call</button>
+        ) : (
+          <>
+            <button onClick={() => openCall("audio")} className="hover:text-green-400">Call</button>
+            <button onClick={() => openCall("video")} className="hover:text-pink-400">Video</button>
+          </>
+        )}
+        <button onClick={() => setIsBackupModalOpen(true)} className="text-sm px-3 py-1 border border-white/20 hover:bg-white/10 rounded">
+          Backup
+        </button>
+        <div className="relative">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="hover:text-gray-300">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white text-gray-800 rounded-lg shadow-lg p-2 z-20">
+              <button onClick={handleClearChat} className="w-full text-left px-4 py-2 hover:bg-red-100 rounded">Clear Chat</button>
+              <button onClick={() => setMenuOpen(false)} className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Cancel</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Messages */}
+    <div className="flex-grow px-4 py-3 overflow-y-auto" ref={messagesContainerRef} onScroll={handleScroll}>
+      <div className="max-w-2xl mx-auto space-y-2">
+        {loading ? <p>Loading messages...</p> : messages.length === 0 ? (
+          <p className="text-center text-white/60">No messages yet</p>
+        ) : (
+          messages.map((msg) => (
+            <div key={msg.id} role="button" tabIndex="0" onClick={() => handleMessageLongPress(msg.id)} onKeyPress={(e) => e.key === 'Enter' && handleMessageLongPress(msg.id)} className={`flex ${msg.userId === userId ? "justify-end" : "justify-start"}`}>
+              <div className={`rounded-xl px-4 py-2 shadow max-w-[75%] ${msg.userId === userId ? "bg-gradient-to-br from-green-400 to-green-600 text-white" : "bg-white/20 text-white backdrop-blur-sm"}`}>
+                {msg.text || `[${msg.type} message]`}
+                {msg.type === "image" && <img src={msg.attachment} alt="sent" className="rounded mt-2 max-w-xs" />}
+                {msg.type === "audio" && <audio controls src={msg.attachment} className="w-full mt-2" />}
+                {!["text", "image", "audio"].includes(msg.type) && <a href={msg.attachment} download className="underline text-blue-200">Download</a>}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div ref={messagesEndRef} />
+    </div>
+
+    {showScrollDown && (
+      <button onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })} className="absolute bottom-4 right-4 bg-green-500 hover:bg-green-600 p-3 rounded-full text-white shadow-lg">
+        ↓
+      </button>
+    )}
+
+    {/* Message Input */}
+    {canSendMessage ? (
+      <div className="p-4 border-t bg-white/10 backdrop-blur-md flex flex-col space-y-2">
+        <div className="flex items-center space-x-3">
+          <input type="file" ref={fileInputRef} onChange={handleAttachmentChange} className="hidden" />
+          <button onClick={() => setShowAttachOptions(!showAttachOptions)} className="p-2 bg-white/20 hover:bg-white/30 rounded-full">
+            📎
+          </button>
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-grow px-4 py-2 rounded-full bg-white/20 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-green-300"
+          />
+          {!text.trim() && !attachment ? (
+            !isRecording ? (
+              <button onClick={startRecording} className="p-2 bg-red-500 hover:bg-red-600 rounded-full">🎙</button>
+            ) : (
+              <button onClick={stopRecording} className="p-2 bg-green-500 hover:bg-green-600 rounded-full">⏹</button>
+            )
+          ) : (
+            <button onClick={handleSend} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-full shadow text-white">Send</button>
+          )}
+        </div>
+        {showAttachOptions && (
+          <div className="bg-white text-black rounded-lg shadow-lg p-3 space-y-2">
+            {["Gallery", "Document", "Audio", "Camera"].map(option => (
+              <button key={option} onClick={() => handleAttachOption(option)} className="block w-full text-left hover:bg-gray-100 px-3 py-1 rounded">{option}</button>
+            ))}
+            <button onClick={() => setShowAttachOptions(false)} className="block w-full text-left hover:bg-gray-100 px-3 py-1 rounded">Cancel</button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <div className="p-3 text-center text-white/70">Only admins can send messages.</div>
+    )}
+
+    {/* Modals */}
+    {isCallModalOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-gray-900 p-6 rounded-xl relative w-full max-w-md shadow-lg">
+          <button onClick={closeCall} className="absolute top-2 right-2 text-white">✕</button>
+          <Call callType={callType} />
+        </div>
+      </div>
+    )}
+
+    {isGroupCallModalOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white text-black p-6 rounded-xl w-full max-w-md shadow-xl relative">
+          <button onClick={closeGroupCall} className="absolute top-2 right-2">✕</button>
+          <h2 className="text-lg font-semibold mb-3">Group Call - {chat.group_name}</h2>
+          <ConferenceCall roomId={chat.id} onEndCall={closeGroupCall} isAdmin={isAdmin} />
+        </div>
+      </div>
+    )}
+
+    {isCameraOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white text-black p-4 rounded-lg max-w-md w-full shadow">
+          <button onClick={closeCamera} className="absolute top-2 right-2">✕</button>
+          <video ref={videoRef} autoPlay muted playsInline className="w-full bg-black" />
+          <canvas ref={canvasRef} className="hidden" />
+          {!capturedImage ? (
+            <button onClick={handleCapture} className="w-full mt-3 bg-blue-600 text-white py-2 rounded">Capture</button>
           ) : (
             <>
-              <img
-                src={chat.profile_image || DEFAULT_PROFILE_IMAGE}
-                alt={chat.chat_partner}
-                className="w-8 h-8 rounded-full"
-              />
-              <div className="flex items-center space-x-2">
-  <span className="font-semibold">{chat.chat_partner}</span>
-  {chat.isOnline ? (
-    <span className="w-2 h-2 bg-green-500 rounded-full"></span> // Online indicator
-  ) : (
-    <span className="w-2 h-2 bg-gray-400 rounded-full"></span> // Offline indicator
-  )}
-</div>
-
+              <img src={capturedImage} alt="Preview" className="mt-2 rounded" />
+              <button onClick={handleUsePhoto} className="w-full mt-3 bg-green-600 text-white py-2 rounded">Use Photo</button>
             </>
           )}
         </div>
-        <div className="flex items-center space-x-4 text-gray-600">
-        {isGroupChat && isAdmin && (
-  <button
-    onClick={() => setIsGroupSettingsOpen(true)}
-    className="hover:text-gray-800 px-2 py-1 border rounded"
-  >
-    Group Settings
-  </button>
-)}
-          <div className="flex space-x-2">
-            {isGroupChat ? (
-              <button
-                onClick={openGroupCall}
-                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Group Call
-              </button>
-            ) : (
-              <>
-                <button onClick={() => openCall('audio')} className="hover:text-gray-800">
-                  Call
-                </button>
-                <button onClick={() => openCall('video')} className="hover:text-gray-800">
-                  Video
-                </button>
-              </>
-            )}
-          </div>
-          <button 
-            onClick={() => setIsBackupModalOpen(true)} 
-            className="hover:text-gray-800 text-sm px-2 py-1 border rounded"
-          >
-            Backup Chats
-          </button>
-          <div className="relative">
-            <button onClick={() => setMenuOpen(!menuOpen)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 focus:outline-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-              </svg>
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20">
-                <button onClick={handleClearChat} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100 rounded">
-                  Clear Chat
-                </button>
-                <button onClick={() => setMenuOpen(false)} className="block w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
+    )}
 
-      {/* Messages Area */}
-      <div className="flex-grow p-4 overflow-y-auto relative" ref={messagesContainerRef} onScroll={handleScroll}>
-        <div className="max-w-2xl mx-auto">
-         {loading && <p>Loading messages...</p>}
-{!loading && messages.length === 0 && (
-    <p className="text-center text-gray-500">No messages yet</p>
-)}
-{!loading && messages.length > 0 && messages.map((msg) => (
-    <div 
-        key={msg.id} 
-        role="button" 
-        tabIndex="0"
-        onClick={() => handleMessageLongPress(msg.id)}
-        onKeyPress={(e) => e.key === 'Enter' && handleMessageLongPress(msg.id)}
-        className={`flex mb-2 ${msg.userId === userId ? 'justify-end' : 'justify-start'}`}
-    >
-        <div 
-            className={`rounded px-3 py-2 shadow whitespace-pre-wrap break-words max-w-[75%] ${
-                msg.userId === userId ? 'bg-green-500 text-white ml-12' : 'bg-white text-black mr-12'
-            }`}
-        >
-            {/* Text Messages */}
-            {msg.text || `[${msg.type} message]`}
+    {isForwardModalOpen && (
+      <ForwardModal onClose={() => setIsForwardModalOpen(false)} selectedMessageIds={forwardMessageIds} messages={messages} userId={userId} onForwardComplete={() => setForwardMessageIds([])} />
+    )}
 
-            {/* Image Messages */}
-            {msg.type === 'image' && (
-                <img src={msg.attachment} alt="sent" className="max-w-xs rounded" />
-            )}
+    {isBackupModalOpen && (
+      <BackupOptions onClose={() => setIsBackupModalOpen(false)} />
+    )}
 
-            {/* Audio Messages */}
-            {msg.type === 'audio' && (
-                <audio controls src={msg.attachment} className="max-w-xs" />
-            )}
+    {isGroupSettingsOpen && (
+      <GroupSettings groupId={chat.id} onClose={() => setIsGroupSettingsOpen(false)} userToken={localStorage.getItem("userToken")} />
+    )}
+  </div>
+);
 
-            {/* Fallback for Unknown Attachments */}
-            {!['text', 'image', 'audio'].includes(msg.type) && (
-                <a href={msg.attachment} download className="text-blue-500 underline">
-                    Download Attachment
-                </a>
-            )}
-        </div>
-    </div>
-))}
-
-        </div>
-        <div ref={messagesEndRef} />
-      </div>
-      {showScrollDown && (
-        <button className="absolute bottom-4 right-4 bg-green-500 text-white p-2 rounded-full shadow" onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}>;
-        
-          ↓
-        </button>
-      )}
-      {/* Message Input / Permissions */}
-      {canSendMessage ? (
-        <div className="p-4 border-t bg-gray-50 flex flex-col relative">
-          <div className="flex items-center space-x-3 relative">
-            {/* File input remains hidden */}
-            <input type="file" ref={fileInputRef} onChange={handleAttachmentChange} className="hidden" />
-
-            {/* Attachment Button */}
-            <button
-             aria-label="Add Attachment"
-              onClick={() => setShowAttachOptions(!showAttachOptions)}
-              className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition focus:outline-none"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-
-            <input
-              type="text"
-              placeholder="Type a message"
-              className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-
-            {/* Audio Recording Controls */}
-            {(!text.trim() && !attachment) && (
-              <>
-                {!isRecording ? (
-                  <button onClick={startRecording} className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18v-6m0 0V6m0 6H6m6 0h6" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button onClick={stopRecording} className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </>
-            )}
-            <button onClick={handleSend} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition shadow">
-              Send
-            </button>
-          </div>
-          {/* Attachment Options Menu */}
-          {showAttachOptions && (
-            <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20">
-              <button
-                onClick={() => handleAttachOption('Gallery')}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Gallery
-              </button>
-              <button
-                onClick={() => handleAttachOption('Document')}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Document
-              </button>
-              <button
-                onClick={() => handleAttachOption('Audio')}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Audio
-              </button>
-              <button
-                onClick={() => handleAttachOption('Camera')}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Camera
-              </button>
-              <button
-                onClick={() => setShowAttachOptions(false)}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="p-3 border-t bg-gray-100 text-center text-gray-600">
-          Only admins can send messages.
-        </div>
-      )}
-
-      {/* Call Modal (Individual Calls) */}
-      {isCallModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-gray-900 p-4 rounded shadow-lg w-full max-w-md">
-            <button onClick={closeCall} className="absolute top-2 right-2 text-white hover:text-gray-300">
-              X
-            </button>
-            <Call callType={callType} />
-          </div>
-        </div>
-      )}
-
-      {/* Group (Conference) Call Modal */}
-      {isGroupCallModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-white p-4 rounded-lg shadow-lg w-full max-w-md">
-            <button onClick={closeGroupCall} className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
-              X
-            </button>
-            <h2 className="mb-4 text-xl font-bold">
-              Group Call - {chat.group_name}
-            </h2>
-            <ConferenceCall roomId={chat.id} onEndCall={closeGroupCall} isAdmin={isAdmin} />
-          </div>
-        </div>
-      )}
-
-      {/* Camera Modal */}
-      {isCameraOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-white p-4 rounded shadow-lg w-full max-w-md text-black">
-            <button onClick={closeCamera} className="absolute top-2 right-2 text-gray-600 hover:text-gray-800">
-              X
-            </button>
-            <div className="flex flex-col items-center space-y-2">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full bg-gray-200"
-                onCanPlay={() => {
-                  if (videoRef.current && cameraStream) {
-                    videoRef.current.srcObject = cameraStream;
-                  }
-                }}
-              />
-              <canvas ref={canvasRef} className="hidden" />
-              {!capturedImage ? (
-                <button onClick={handleCapture} className="px-4 py-2 bg-blue-500 text-white rounded">
-                  Capture
-                </button>
-              ) : (
-                <img src={capturedImage} alt="captured" className="max-w-full max-h-64 object-contain" />
-              )}
-              {capturedImage && (
-                <button onClick={handleUsePhoto} className="px-4 py-2 bg-green-500 text-white rounded">
-                  Use Photo
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {isForwardModalOpen && (
-        <ForwardModal
-          onClose={() => setIsForwardModalOpen(false)}
-          selectedMessageIds={forwardMessageIds}
-          messages={messages}
-          userId={userId}
-          onForwardComplete={() => {
-            // Optionally add any callback actions here after forwarding
-            setForwardMessageIds([]);
-          }}
-        />
-      )}
-      {isBackupModalOpen && (
-        <BackupOptions onClose={() => setIsBackupModalOpen(false)} />
-      )}
-      {isGroupSettingsOpen && (
-  <GroupSettings
-    groupId={chat.id}  // Assuming chat.id represents the current group’s ID
-    onClose={() => setIsGroupSettingsOpen(false)}
-    userToken={localStorage.getItem('userToken')} // or pass the token if available via props
-  />
-)}
-    </div>
-  );
 }
 ChatWindow.propTypes = {
   chat: PropTypes.shape({

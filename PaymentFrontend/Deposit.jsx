@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import React ,{ useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
-import QrReader from "react-qr-reader";
+import QrScanner from 'react-qr-scanner';
+
 import { ethers } from "ethers";
 import { useBiconomyWallet } from "./hooks/useBiconomyWallet";
 import ContractABI from "./ContractABI.json";
 import axios from "axios";
 
 const CONTRACT_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
-const API_URL = "https://dummyapi.yourdomain.com";
+
+const API_URL = process.env.REACT_APP_API_URL ;
 export default function Receive() {
   const { smartAccount, address } = useBiconomyWallet();
   const [scanning, setScanning] = useState(false);
@@ -116,53 +118,71 @@ if (validUsername) {
     }
   };
 
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Receive Payment</h2>
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] flex items-center justify-center p-4">
+    <div className="relative w-full max-w-2xl p-8 bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl text-white animate-fade-in">
+
+      {/* Decorative SVG pulse */}
+      <svg className="absolute -top-8 -right-8 w-24 h-24 text-pink-400/30 animate-pulse" fill="none" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" fill="currentColor" />
+      </svg>
+
+      <h2 className="text-3xl font-bold text-center mb-8 tracking-wide">💸 Receive Payment</h2>
 
       {address ? (
-        <div className="space-y-6">
-          <div>
-            <p><strong>Wallet Address:</strong> {address}</p>
-            <p><strong>Username:</strong> {username || "Not set"}</p>
-            <p><strong>Account Number:</strong> {accountNumber}</p>
+        <div className="space-y-8">
+
+          {/* Wallet Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/10 border border-white/20 p-4 rounded-xl shadow">
+              <p className="text-sm text-white/70 mb-1">Wallet Address</p>
+              <p className="font-mono break-all">{address}</p>
+            </div>
+            <div className="bg-white/10 border border-white/20 p-4 rounded-xl shadow">
+              <p className="text-sm text-white/70 mb-1">Username</p>
+              <p>{username || "Not set"}</p>
+              <p className="mt-2 text-sm text-white/70">Account #: <span className="font-mono">{accountNumber}</span></p>
+            </div>
           </div>
 
-          <div className="border p-4 rounded bg-white">
+          {/* QR Code */}
+          <div className="text-center bg-white/10 border border-white/20 p-6 rounded-xl shadow-md">
             <QRCodeCanvas value={qrData} size={180} />
-            <p className="mt-2 text-sm text-gray-600">Scan to pay (Tap-to-Pay)</p>
+            <p className="mt-4 text-sm text-white/60">Scan this QR to pay via wallet</p>
           </div>
 
-          <div className="mt-6">
-            <h3 className="font-semibold mb-2">Deposit ETH</h3>
-            <div className="flex items-center">
+          {/* Deposit Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">⬆️ Deposit ETH</h3>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
               <input
                 type="number"
                 placeholder="Amount in ETH"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                className="border p-2 rounded w-40"
+                className="px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-green-400 w-full sm:w-40"
               />
               <button
                 onClick={handleDeposit}
-                className="bg-green-600 text-white px-4 py-2 ml-3 rounded hover:bg-green-700"
+                className="bg-gradient-to-r from-green-400 to-teal-500 hover:scale-[1.02] transition-transform text-white px-6 py-3 rounded-xl font-semibold shadow"
               >
                 Deposit
               </button>
             </div>
           </div>
 
-          <div className="mt-8">
+          {/* QR Scanner */}
+          <div>
             <button
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:scale-[1.02] transition-transform text-white px-6 py-3 rounded-xl font-semibold shadow"
               onClick={() => setScanning(!scanning)}
             >
-              {scanning ? "Stop Scanner" : "Scan QR Code"}
+              {scanning ? "🛑 Stop Scanner" : "📷 Scan QR Code"}
             </button>
 
             {scanning && (
-              <div className="mt-4">
-                <QrReader
+              <div className="mt-6 bg-black/30 p-4 rounded-lg border border-white/20 shadow">
+                <QrScanner
                   delay={300}
                   onError={handleError}
                   onScan={handleScan}
@@ -173,8 +193,10 @@ if (validUsername) {
           </div>
         </div>
       ) : (
-        <p>Please connect your wallet to see receive info.</p>
+        <p className="text-center text-white/70 text-sm">⚠️ Please connect your wallet to view payment details.</p>
       )}
     </div>
-  );
+  </div>
+);
+
 }

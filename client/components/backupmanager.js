@@ -32,12 +32,12 @@ export const uploadBackupToDrive = async () => {
   const chats = await exportChatsBackup();
   const dataStr = JSON.stringify(chats, null, 2);
   const fileContent = new Blob([dataStr], { type: 'application/json' });
+
   const metadata = {
     name: `chat-backup-${new Date().toISOString()}.json`,
-    mimeType: 'application/json'
+    mimeType: 'application/json',
   };
 
-  // Combine the metadata and file content using FormData.
   const form = new FormData();
   form.append(
     'metadata',
@@ -45,23 +45,20 @@ export const uploadBackupToDrive = async () => {
   );
   form.append('file', fileContent);
 
-  // Retrieve the access token from gapi.
-  const accessToken = gapi.auth2
-    .getAuthInstance()
-    .currentUser.get()
-    .getAuthResponse().access_token;
+  // ✅ Securely get access token from authenticated user
+  const auth = window.gapi.auth2.getAuthInstance();
+  const user = auth.currentUser.get();
+  const token = user.getAuthResponse().access_token;
 
-  // Upload the backup to Google Drive.
   const response = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
     {
       method: 'POST',
-      headers: new Headers({ Authorization: 'Bearer '  + (process.env.REACT_APP_GOOGLE_ACCESS_TOKEN || 'dummy_access_token') }),
-      body: form
+      headers: new Headers({ Authorization: `Bearer ${token}` }),
+      body: form,
     }
   );
-  
-  // Directly parse and return the response JSON.
+
   const fileData = await response.json();
   return fileData;
 };

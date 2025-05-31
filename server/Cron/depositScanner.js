@@ -2,9 +2,10 @@
 const cron = require("node-cron");
 const axios = require("axios");
 const { fetchAllUsersFromEvents } = require("./monitorUserEvents");
-
+const { getSetting } = require("../utils/appSettings");
+const API_URL = process.env.REACT_APP_API_URL ;
 const coins = ["BTC", "XRP", "SOL", "DOGE", "LTC", "ADA", "DOT", "BCH", "XLM"];
-const TATUM_API_KEY = process.env.TATUM_API_KEY;
+const TATUM_API_KEY = await getSetting("TATUM_API_KEY");
 
 const resolveWallet = (evm, coin) => {
   const { keccak256 } = require("ethers/lib/utils");
@@ -23,7 +24,7 @@ const checkDeposits = async () => {
 
         try {
           const res = await axios.get(
-             `https://dummy-api.yourdomain.com/v3/ledger/account/${wallet || "dummy_wallet"}/transactions?pageSize=10`,
+             `${API_URL}/v3/ledger/account/${wallet}/transactions?pageSize=10`,
             {
               headers: { "x-api-key": TATUM_API_KEY },
             }
@@ -34,9 +35,9 @@ const checkDeposits = async () => {
           for (let tx of txs) {
             if (tx.operation === "PAYMENT" && tx.counterAccountId !== wallet) {
               // Send webhook to your backend to update balance
-              await axios.post("https://dummy-api.yourdomain.com/api/webhooks/deposit-hook", {
-                address: wallet || "dummy_wallet",
-                amount: tx.amount || "0",
+              await axios.post(`${API_URL}/api/webhooks/deposit-hook`, {
+                address: wallet ,
+                amount: tx.amount,
                 currency: coin,
               });
 
