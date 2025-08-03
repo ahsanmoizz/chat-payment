@@ -29,5 +29,5 @@
 
 ---
 
-## 🛠️ Project Structure
+Note:"To use it correctly also clone repository naming adminContols(https://github.com/ahsanmoizz/adminControls) in a seperate folder  having all controls for this app". 
 
